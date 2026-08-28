@@ -62,6 +62,22 @@ export default function PracticePage() {
     if (showTextInput) textInputRef.current?.focus()
   }, [showTextInput])
 
+  // iOS 要求 speechSynthesis 在用户手势内首次调用才能解锁
+  useEffect(() => {
+    const unlock = () => {
+      if (!window.speechSynthesis) return
+      const u = new SpeechSynthesisUtterance('')
+      u.volume = 0
+      window.speechSynthesis.speak(u)
+    }
+    document.addEventListener('touchstart', unlock, { once: true })
+    document.addEventListener('click', unlock, { once: true })
+    return () => {
+      document.removeEventListener('touchstart', unlock)
+      document.removeEventListener('click', unlock)
+    }
+  }, [])
+
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
@@ -211,7 +227,23 @@ export default function PracticePage() {
     utter.pitch = 1.05
     utter.onstart = () => setIsSpeaking(true)
     utter.onend = () => setIsSpeaking(false)
-    window.speechSynthesis.speak(utter)
+    utter.onerror = () => setIsSpeaking(false)
+
+    const doSpeak = () => {
+      const voices = window.speechSynthesis.getVoices()
+      const enVoice = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'))
+      if (enVoice) utter.voice = enVoice
+      window.speechSynthesis.speak(utter)
+    }
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      doSpeak()
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null
+        doSpeak()
+      }
+    }
   }
 
   const startRecording = useCallback(() => {
