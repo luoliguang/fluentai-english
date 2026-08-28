@@ -6,9 +6,11 @@ import Sidebar from '@/components/Sidebar'
 import { fetchWords, fetchStats } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
 import { useI18n } from '@/lib/i18nContext'
+import { useSession } from 'next-auth/react'
 
 export default function Dashboard() {
   const { t } = useI18n()
+  const { data: session } = useSession()
   const [words, setWords] = useState<Word[]>([])
   const [stats, setStats] = useState({ total: 0, mastered: 0, learning: 0 })
 
@@ -19,8 +21,10 @@ export default function Dashboard() {
 
   const masteryColor = (m: number) => m >= 70 ? '#10b981' : '#f59e0b'
 
+  const userName = session?.user?.name || session?.user?.email?.split('@')[0] || ''
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? t.goodMorning : hour < 18 ? t.goodAfternoon : t.goodEvening
+  const greetingBase = hour < 12 ? t.goodMorning : hour < 18 ? t.goodAfternoon : t.goodEvening
+  const greeting = userName ? `${greetingBase}，${userName}` : greetingBase
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#0a0f1e' }}>

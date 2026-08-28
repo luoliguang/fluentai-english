@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { House, Microphone, BookOpen } from '@phosphor-icons/react'
+import { House, Microphone, BookOpen, UserCircle } from '@phosphor-icons/react'
 import { useI18n } from '@/lib/i18nContext'
 
 export default function BottomNav() {
@@ -12,6 +12,7 @@ export default function BottomNav() {
     { href: '/',           label: t.home,    Icon: House },
     { href: '/practice',   label: t.practice, Icon: Microphone },
     { href: '/vocabulary', label: t.wordBank, Icon: BookOpen },
+    { href: '/profile',    label: '我的',    Icon: UserCircle },
   ]
 
   return (

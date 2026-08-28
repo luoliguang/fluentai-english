@@ -223,7 +223,7 @@ export default function PracticePage() {
 
     const recognition = new SR()
     recognition.lang = 'en-US'
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.interimResults = true
 
     recognition.onresult = (e: SpeechRecognitionEvent) => {
@@ -236,15 +236,10 @@ export default function PracticePage() {
       setIsRecording(false)
       const text = transcriptRef.current
       if (text.trim()) {
-        setTimeout(() => {
-          sendMessage(text)
-          setTranscript('')
-          transcriptRef.current = ''
-        }, 500)
-      } else {
-        setTranscript('')
-        transcriptRef.current = ''
+        sendMessage(text)
       }
+      setTranscript('')
+      transcriptRef.current = ''
     }
 
     recognition.onerror = () => {

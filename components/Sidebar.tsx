@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { House, Microphone, BookOpen, SignOut } from '@phosphor-icons/react'
+import { House, Microphone, BookOpen, SignOut, UserCircle } from '@phosphor-icons/react'
 import { useSession, signOut } from 'next-auth/react'
 import { useI18n } from '@/lib/i18nContext'
 
@@ -14,6 +14,7 @@ export default function Sidebar() {
     { href: '/',           label: t.home,     icon: <House size={16} weight="regular" /> },
     { href: '/practice',   label: t.practice, icon: <Microphone size={16} weight="regular" /> },
     { href: '/vocabulary', label: t.wordBank,  icon: <BookOpen size={16} weight="regular" /> },
+    { href: '/profile',    label: '我的',      icon: <UserCircle size={16} weight="regular" /> },
   ]
 
   const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'User'
