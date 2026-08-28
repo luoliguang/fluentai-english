@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Microphone } from '@phosphor-icons/react'
+import { Microphone, Fire } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
 import { fetchWords, fetchStats } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
@@ -38,7 +38,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm"
             style={{ background: '#111827', borderColor: '#1f2937' }}>
-            <span className="text-base">🔥</span>
+            <Fire size={18} weight="fill" color="#f59e0b" />
             <div>
               <div className="font-bold text-sm" style={{ color: '#f9fafb' }}>{t.keepItGoing}</div>
               <div className="text-xs" style={{ color: '#6b7280' }}>{t.practiceDaily}</div>

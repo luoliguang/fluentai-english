@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { MagnifyingGlass, ArrowRight, X } from '@phosphor-icons/react'
+import { MagnifyingGlass, ArrowRight, X, Books } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
 import { fetchWords, patchMastery, removeWord } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
@@ -110,7 +110,7 @@ export default function VocabularyPage() {
         <div className="flex-1 overflow-y-auto px-10 pb-10">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
-              <div className="text-4xl mb-4">📚</div>
+              <Books size={40} weight="thin" color="#4b5563" className="mb-4" />
               <p className="text-sm" style={{ color: '#6b7280' }}>
                 {words.length === 0 ? t.noWordsEmpty : t.noWordsMatch}
               </p>

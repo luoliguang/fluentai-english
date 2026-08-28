@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle } from '@phosphor-icons/react'
+import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
 import { Message, Word } from '@/lib/types'
 import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
@@ -14,10 +14,10 @@ declare global {
 }
 
 const TOPICS = [
-  { emoji: '✈️', zh: '旅游', en: "Let's talk about travel! I'd love to practice describing places I want to visit." },
-  { emoji: '💻', zh: '科技', en: "I want to discuss technology and how AI is changing our daily lives." },
-  { emoji: '🍜', zh: '美食', en: "Let's talk about food! I can describe my favorite dishes." },
-  { emoji: '🎬', zh: '电影', en: "I'd like to talk about movies or TV shows I've been watching recently." },
+  { icon: <AirplaneTakeoff size={18} weight="regular" color="#a5b4fc" />, zh: '旅游', en: "Let's talk about travel! I'd love to practice describing places I want to visit." },
+  { icon: <Desktop size={18} weight="regular" color="#6ee7b7" />, zh: '科技', en: "I want to discuss technology and how AI is changing our daily lives." },
+  { icon: <ForkKnife size={18} weight="regular" color="#fca5a5" />, zh: '美食', en: "Let's talk about food! I can describe my favorite dishes." },
+  { icon: <FilmSlate size={18} weight="regular" color="#fcd34d" />, zh: '电影', en: "I'd like to talk about movies or TV shows I've been watching recently." },
 ]
 
 export default function PracticePage() {
@@ -416,7 +416,7 @@ export default function PracticePage() {
                     className="flex items-center gap-2.5 rounded-xl px-4 py-3 border text-left transition-all hover:border-amber-500/40 hover:bg-amber-500/5"
                     style={{ background: '#111827', borderColor: '#1f2937' }}
                   >
-                    <span className="text-xl flex-shrink-0">{topic.emoji}</span>
+                    <span className="flex-shrink-0">{topic.icon}</span>
                     <span className="text-sm font-semibold" style={{ color: '#d1d5db' }}>
                       {lang === 'zh' ? topic.zh : topic.en.split('!')[0].replace("Let's talk about ", '').replace("I want to discuss ", '').replace("I'd like to talk about ", '')}
                     </span>
