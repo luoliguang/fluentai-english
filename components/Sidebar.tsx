@@ -20,7 +20,7 @@ export default function Sidebar() {
   const userInitial = userName[0].toUpperCase()
 
   return (
-    <div className="w-[220px] flex-shrink-0 flex flex-col h-full" style={{ background: '#060b17', borderRight: '1px solid #1a2540' }}>
+    <div className="hidden md:flex w-[220px] flex-shrink-0 flex-col h-full" style={{ background: '#060b17', borderRight: '1px solid #1a2540' }}>
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-7">
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#f59e0b' }}>

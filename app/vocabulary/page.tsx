@@ -53,7 +53,7 @@ export default function VocabularyPage() {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-10 pt-10 pb-6 flex-shrink-0">
+        <div className="px-5 md:px-10 pt-6 md:pt-10 pb-4 md:pb-6 flex-shrink-0">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>{t.wordBankTitle}</h1>
@@ -80,8 +80,8 @@ export default function VocabularyPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 flex-1 max-w-xs border"
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 flex-1 border"
               style={{ background: '#111827', borderColor: '#1f2937' }}>
               <MagnifyingGlass size={16} weight="regular" color="#6b7280" />
               <input
@@ -107,7 +107,7 @@ export default function VocabularyPage() {
         </div>
 
         {/* Word grid */}
-        <div className="flex-1 overflow-y-auto px-10 pb-10">
+        <div className="flex-1 overflow-y-auto px-5 md:px-10 pb-24 md:pb-10">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <Books size={40} weight="thin" color="#4b5563" className="mb-4" />
@@ -116,7 +116,7 @@ export default function VocabularyPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(w => (
                 <div key={w.id} className="rounded-2xl p-5 border group"
                   style={{ background: '#111827', borderColor: '#1f2937' }}>

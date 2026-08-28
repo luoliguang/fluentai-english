@@ -323,7 +323,7 @@ export default function PracticePage() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #1a2540' }}>
+        <div className="flex items-center justify-between px-4 md:px-7 py-3 md:py-4 flex-shrink-0" style={{ borderBottom: '1px solid #1a2540' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-[18px] font-black"
               style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', letterSpacing: '-0.5px' }}>
@@ -353,7 +353,7 @@ export default function PracticePage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-7 py-6 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 py-4 md:py-6 flex flex-col gap-5">
           {messages.map(msg => (
             <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse self-end max-w-[68%]' : 'max-w-[82%]'}`}>
               <div className={`w-8 h-8 flex items-center justify-center text-[13px] font-bold flex-shrink-0 mt-0.5 ${
@@ -504,7 +504,7 @@ export default function PracticePage() {
         </div>
 
         {/* Input area */}
-        <div className="px-7 pb-6 pt-4 flex-shrink-0" style={{ borderTop: '1px solid #1a2540', background: '#060b17' }}>
+        <div className="px-4 md:px-7 pb-20 md:pb-6 pt-4 flex-shrink-0" style={{ borderTop: '1px solid #1a2540', background: '#060b17' }}>
           <div className="flex items-center gap-3">
 
             {showTextInput ? (
@@ -621,8 +621,19 @@ export default function PracticePage() {
         </div>
       </div>
 
-      {/* 本次单词侧边栏 */}
-      <div className="w-60 flex-shrink-0 flex flex-col" style={{ background: '#060b17', borderLeft: '1px solid #1a2540' }}>
+      {/* 移动端浮动单词角标 */}
+      {sessionWords.length > 0 && (
+        <div className="fixed bottom-[72px] right-4 md:hidden z-40">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg"
+            style={{ background: '#f59e0b', color: '#0a0f1e' }}>
+            <BookmarkSimple size={13} weight="fill" color="#0a0f1e" />
+            {sessionWords.length}
+          </div>
+        </div>
+      )}
+
+      {/* 本次单词侧边栏（仅桌面端） */}
+      <div className="hidden md:flex w-60 flex-shrink-0 flex-col" style={{ background: '#060b17', borderLeft: '1px solid #1a2540' }}>
         <div className="flex items-center justify-between px-4 py-5 flex-shrink-0" style={{ borderBottom: '1px solid #1a2540' }}>
           <h3 className="text-[13px] font-bold" style={{ color: '#f9fafb' }}>{t.sessionWordsTitle}</h3>
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"

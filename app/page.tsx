@@ -26,20 +26,20 @@ export default function Dashboard() {
     <div className="flex h-screen overflow-hidden" style={{ background: '#0a0f1e' }}>
       <Sidebar />
 
-      <main className="flex-1 flex flex-col gap-7 p-10 overflow-y-auto">
+      <main className="flex-1 flex flex-col gap-6 p-5 md:p-10 overflow-y-auto pb-20 md:pb-10">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: '#6b7280' }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>{greeting}</h1>
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>{greeting}</h1>
             <p className="text-sm mt-1" style={{ color: '#9ca3af' }}>{t.readyToPractice}</p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm"
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border text-sm flex-shrink-0"
             style={{ background: '#111827', borderColor: '#1f2937' }}>
-            <Fire size={18} weight="fill" color="#f59e0b" />
-            <div>
+            <Fire size={16} weight="fill" color="#f59e0b" />
+            <div className="hidden sm:block">
               <div className="font-bold text-sm" style={{ color: '#f9fafb' }}>{t.keepItGoing}</div>
               <div className="text-xs" style={{ color: '#6b7280' }}>{t.practiceDaily}</div>
             </div>
@@ -47,36 +47,36 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-3 gap-3">
           {[
             { label: t.wordsLearned, value: stats.total, sub: `${stats.mastered} ${t.mastered.toLowerCase()}`, color: '#f9fafb' },
             { label: t.learning, value: stats.learning, sub: t.inProgress, color: '#f59e0b' },
             { label: t.mastered, value: stats.mastered, sub: t.wellDone, color: '#10b981' },
           ].map(s => (
-            <div key={s.label} className="rounded-2xl p-5 border" style={{ background: '#111827', borderColor: '#1f2937' }}>
-              <div className="text-[11px] font-semibold uppercase tracking-widest mb-2.5" style={{ color: '#6b7280' }}>{s.label}</div>
-              <div className="text-4xl font-extrabold tracking-tighter leading-none" style={{ color: s.color }}>{s.value}</div>
-              <div className="text-xs mt-1.5 font-medium" style={{ color: '#6b7280' }}>{s.sub}</div>
+            <div key={s.label} className="rounded-2xl p-4 md:p-5 border" style={{ background: '#111827', borderColor: '#1f2937' }}>
+              <div className="text-[10px] md:text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: '#6b7280' }}>{s.label}</div>
+              <div className="text-3xl md:text-4xl font-extrabold tracking-tighter leading-none" style={{ color: s.color }}>{s.value}</div>
+              <div className="text-[11px] mt-1.5 font-medium hidden sm:block" style={{ color: '#6b7280' }}>{s.sub}</div>
             </div>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="rounded-2xl p-8 flex items-center justify-between border"
+        <div className="rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border"
           style={{ background: 'linear-gradient(135deg, #111827 0%, #14183a 100%)', borderColor: '#252d50' }}>
           <div>
             <div className="inline-block text-[11px] font-bold uppercase tracking-widest rounded-md px-2.5 py-1 mb-3"
               style={{ color: '#a5b4fc', background: 'rgba(99,102,241,0.1)' }}>{t.todaySession}</div>
-            <h2 className="text-xl font-extrabold tracking-tight mb-1.5" style={{ color: '#f9fafb' }}>{t.aiConvPractice}</h2>
-            <p className="text-sm leading-relaxed max-w-md" style={{ color: '#9ca3af' }}>{t.aiConvDesc}</p>
+            <h2 className="text-lg md:text-xl font-extrabold tracking-tight mb-1.5" style={{ color: '#f9fafb' }}>{t.aiConvPractice}</h2>
+            <p className="text-sm leading-relaxed" style={{ color: '#9ca3af' }}>{t.aiConvDesc}</p>
           </div>
-          <div className="flex items-center gap-5 ml-8 flex-shrink-0">
-            <div className="text-center">
+          <div className="flex items-center gap-4 sm:flex-shrink-0">
+            <div className="text-center hidden sm:block">
               <div className="text-[11px] mb-0.5" style={{ color: '#6b7280' }}>{t.suggested}</div>
               <div className="text-sm font-bold" style={{ color: '#9ca3af' }}>{t.minRange}</div>
             </div>
             <Link href="/practice"
-              className="flex items-center gap-2.5 rounded-[14px] px-6 py-3.5 text-sm font-extrabold transition-opacity hover:opacity-90"
+              className="flex items-center gap-2.5 rounded-[14px] px-5 py-3 text-sm font-extrabold transition-opacity hover:opacity-90 w-full sm:w-auto justify-center"
               style={{ background: '#f59e0b', color: '#0a0f1e' }}>
               <Microphone size={16} weight="regular" color="#0a0f1e" />
               {t.startSpeaking}
@@ -98,7 +98,7 @@ export default function Dashboard() {
               <p className="text-sm" style={{ color: '#6b7280' }}>{t.noWordsYet}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {words.map(w => (
                 <div key={w.id} className="rounded-2xl p-4 border" style={{ background: '#111827', borderColor: '#1f2937' }}>
                   <div className="flex items-center justify-between mb-2">
