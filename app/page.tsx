@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Mic } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { getWords, getStats } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
@@ -79,11 +80,7 @@ export default function Dashboard() {
             <Link href="/practice"
               className="flex items-center gap-2.5 rounded-[14px] px-6 py-3.5 text-sm font-extrabold transition-opacity hover:opacity-90"
               style={{ background: '#f59e0b', color: '#0a0f1e' }}>
-              <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-                <rect x="4.5" y="1.5" width="8" height="10" rx="4" fill="#0a0f1e"/>
-                <path d="M2 9.5a7 7 0 0013 0" stroke="#0a0f1e" strokeWidth="1.8" strokeLinecap="round"/>
-                <path d="M8.5 16v1.5" stroke="#0a0f1e" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
+              <Mic size={17} strokeWidth={2} color="#0a0f1e" />
               {t.startSpeaking}
             </Link>
           </div>

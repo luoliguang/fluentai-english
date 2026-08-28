@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  phone         String?   @unique
+  name          String?
+  password      String?
+  level         String    @default("B1")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  words         Word[]
+  sessions      PracticeSession[]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Word {
+  id         String   @id @default(cuid())
+  userId     String
+  word       String
+  phonetic   String?
+  pos        String
+  definition String
+  example    String   @db.Text
+  mastery    Int      @default(0)
+  savedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+}
+
+model PracticeSession {
+  id        String    @id @default(cuid())
+  userId    String
+  duration  Int       @default(0)
+  startedAt DateTime  @default(now())
+
+  messages  Message[]
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  session PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}

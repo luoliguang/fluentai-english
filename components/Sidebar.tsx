@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Home, Mic, BookOpen } from 'lucide-react'
 import { useI18n } from '@/lib/i18nContext'
 
 export default function Sidebar() {
@@ -8,35 +9,9 @@ export default function Sidebar() {
   const { t, lang, toggleLang } = useI18n()
 
   const navItems = [
-    {
-      href: '/',
-      label: t.home,
-      icon: (
-        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M2.5 8L8.5 2.5l6 5.5"/><path d="M4.5 6.5v8h3v-4h2v4h3v-8"/>
-        </svg>
-      ),
-    },
-    {
-      href: '/practice',
-      label: t.practice,
-      icon: (
-        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="5" y="2" width="7" height="9" rx="3.5"/>
-          <path d="M2.5 9a6 6 0 0012 0"/><path d="M8.5 15v2"/>
-        </svg>
-      ),
-    },
-    {
-      href: '/vocabulary',
-      label: t.wordBank,
-      icon: (
-        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2.5" y="3" width="12" height="11" rx="2"/>
-          <path d="M5.5 7h6M5.5 10.5h4"/>
-        </svg>
-      ),
-    },
+    { href: '/',           label: t.home,     icon: <Home size={17} strokeWidth={1.7} /> },
+    { href: '/practice',   label: t.practice, icon: <Mic size={17} strokeWidth={1.7} /> },
+    { href: '/vocabulary', label: t.wordBank,  icon: <BookOpen size={17} strokeWidth={1.7} /> },
   ]
 
   return (

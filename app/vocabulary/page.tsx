@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Search, ArrowRight, X } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { getWords, updateMastery, deleteWord } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
@@ -73,9 +74,7 @@ export default function VocabularyPage() {
                 }}
                 className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90"
                 style={{ background: '#f59e0b', color: '#0a0f1e' }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0a0f1e" strokeWidth="2" strokeLinecap="round">
-                  <path d="M2 7h10M8 3l4 4-4 4"/>
-                </svg>
+                <ArrowRight size={14} strokeWidth={2} color="#0a0f1e" />
                 {t.quickReview}
               </button>
             )}
@@ -85,9 +84,7 @@ export default function VocabularyPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 flex-1 max-w-xs border"
               style={{ background: '#111827', borderColor: '#1f2937' }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#6b7280" strokeWidth="1.6" strokeLinecap="round">
-                <circle cx="6" cy="6" r="4.5"/><path d="M10 10l3 3"/>
-              </svg>
+              <Search size={14} strokeWidth={1.6} color="#6b7280" />
               <input
                 type="text"
                 value={search}
@@ -133,8 +130,10 @@ export default function VocabularyPage() {
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                         style={{ background: '#1f2937', color: '#6b7280' }}>{w.pos}</span>
                       <button onClick={() => handleDelete(w.id)}
-                        className="opacity-0 group-hover:opacity-100 text-[11px] transition-opacity"
-                        style={{ color: '#6b7280' }}>✕</button>
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ color: '#6b7280' }}>
+                        <X size={13} strokeWidth={2} />
+                      </button>
                     </div>
                   </div>
 
