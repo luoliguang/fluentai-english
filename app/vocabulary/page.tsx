@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Search, ArrowRight, X } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
-import { getWords, updateMastery, deleteWord } from '@/lib/wordBank'
+import { fetchWords, patchMastery, removeWord } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
 import { useI18n } from '@/lib/i18nContext'
 
@@ -15,7 +15,7 @@ export default function VocabularyPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    setWords(getWords())
+    fetchWords().then(setWords)
   }, [])
 
   const filtered = words.filter(w => {
@@ -28,14 +28,14 @@ export default function VocabularyPage() {
     return matchSearch && matchFilter
   })
 
-  const handleMastery = (id: string, mastery: number) => {
-    updateMastery(id, mastery)
-    setWords(getWords())
+  const handleMastery = async (id: string, mastery: number) => {
+    await patchMastery(id, mastery)
+    setWords(prev => prev.map(w => w.id === id ? { ...w, mastery } : w))
   }
 
-  const handleDelete = (id: string) => {
-    deleteWord(id)
-    setWords(getWords())
+  const handleDelete = async (id: string) => {
+    await removeWord(id)
+    setWords(prev => prev.filter(w => w.id !== id))
   }
 
   const masteryLabel = (m: number) => m >= 70 ? t.statusMastered : m > 0 ? t.statusLearning : t.statusNew
@@ -80,7 +80,6 @@ export default function VocabularyPage() {
             )}
           </div>
 
-          {/* Search + Filter */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 flex-1 max-w-xs border"
               style={{ background: '#111827', borderColor: '#1f2937' }}>
@@ -147,7 +146,6 @@ export default function VocabularyPage() {
                     </div>
                   )}
 
-                  {/* Mastery */}
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-semibold" style={{ color: masteryColor(w.mastery) }}>
                       {masteryLabel(w.mastery)}
@@ -159,7 +157,6 @@ export default function VocabularyPage() {
                       style={{ width: `${w.mastery}%`, background: masteryColor(w.mastery) }} />
                   </div>
 
-                  {/* Mastery buttons */}
                   <div className="flex gap-2 mt-3">
                     <button onClick={() => handleMastery(w.id, Math.max(0, w.mastery - 20))}
                       className="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-colors"

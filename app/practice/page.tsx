@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Clock, AlertCircle, BookmarkPlus, ArrowRight, Keyboard, Mic, Square, X, Send, Bot } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { Message, Word } from '@/lib/types'
-import { parseWords, parseCorrections, renderContent, saveWord } from '@/lib/wordBank'
+import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
 import { useI18n } from '@/lib/i18nContext'
 
 declare global {
@@ -258,11 +258,12 @@ export default function PracticePage() {
     setTextInput('')
   }
 
-  const handleSaveWord = (word: Word) => {
-    saveWord(word)
+  const handleSaveWord = async (word: Word) => {
+    const saved = await createWord(word)
+    if (!saved) return
     setSessionWords(prev => {
-      if (prev.find(w => w.word === word.word)) return prev
-      return [word, ...prev]
+      if (prev.find(w => w.word === saved.word)) return prev
+      return [saved, ...prev]
     })
     setPendingWords(prev => prev.filter(w => w.word !== word.word))
   }

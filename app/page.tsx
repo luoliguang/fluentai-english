@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Mic } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
-import { getWords, getStats } from '@/lib/wordBank'
+import { fetchWords, fetchStats } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
 import { useI18n } from '@/lib/i18nContext'
 
@@ -13,8 +13,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, mastered: 0, learning: 0 })
 
   useEffect(() => {
-    setWords(getWords().slice(0, 4))
-    setStats(getStats())
+    fetchWords().then(w => setWords(w.slice(0, 4)))
+    fetchStats().then(setStats)
   }, [])
 
   const masteryColor = (m: number) => m >= 70 ? '#10b981' : '#f59e0b'
@@ -68,9 +68,7 @@ export default function Dashboard() {
             <div className="inline-block text-[11px] font-bold uppercase tracking-widest rounded-md px-2.5 py-1 mb-3"
               style={{ color: '#a5b4fc', background: 'rgba(99,102,241,0.1)' }}>{t.todaySession}</div>
             <h2 className="text-xl font-extrabold tracking-tight mb-1.5" style={{ color: '#f9fafb' }}>{t.aiConvPractice}</h2>
-            <p className="text-sm leading-relaxed max-w-md" style={{ color: '#9ca3af' }}>
-              {t.aiConvDesc}
-            </p>
+            <p className="text-sm leading-relaxed max-w-md" style={{ color: '#9ca3af' }}>{t.aiConvDesc}</p>
           </div>
           <div className="flex items-center gap-5 ml-8 flex-shrink-0">
             <div className="text-center">
