@@ -286,7 +286,7 @@ export default function PracticePage() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
-              <Bot size={20} strokeWidth={1.6} color="white" />
+              <Bot size={20} strokeWidth={1.5} color="white" />
             </div>
             <div>
               <div className="text-sm font-bold" style={{ color: '#f9fafb' }}>Luna</div>
@@ -299,7 +299,7 @@ export default function PracticePage() {
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border"
               style={{ background: '#111827', borderColor: '#1f2937', color: '#9ca3af' }}>
-              <Clock size={12} strokeWidth={1.6} color="#6b7280" />
+              <Clock size={14} strokeWidth={1.5} color="#6b7280" />
               {formatTime(sessionTime)}
             </div>
             {sessionWords.length > 0 && (
@@ -321,7 +321,7 @@ export default function PracticePage() {
                   ? { background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }
                   : { background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: 'white' }}>
                 {msg.role === 'assistant'
-                  ? <Bot size={14} strokeWidth={1.6} color="white" />
+                  ? <Bot size={14} strokeWidth={1.5} color="white" />
                   : 'G'}
               </div>
 
@@ -347,7 +347,7 @@ export default function PracticePage() {
                     style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.2)' }}>
                     <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{ background: 'rgba(239,68,68,0.12)' }}>
-                      <AlertCircle size={13} strokeWidth={1.8} color="#f87171" />
+                      <AlertCircle size={14} strokeWidth={1.5} color="#f87171" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[10px] font-bold uppercase tracking-wide mb-1.5" style={{ color: '#f87171' }}>
@@ -356,7 +356,7 @@ export default function PracticePage() {
                       <div className="text-xs flex items-center flex-wrap gap-1.5 mb-1">
                         <span style={{ color: '#6b7280' }}>{t.correctionYouSaid}</span>
                         <span className="line-through" style={{ color: '#f87171' }}>&ldquo;{c.wrong}&rdquo;</span>
-                        <ArrowRight size={12} strokeWidth={1.5} color="#4b5563" />
+                        <ArrowRight size={14} strokeWidth={1.5} color="#4b5563" />
                         <span style={{ color: '#34d399' }}>&ldquo;{c.right}&rdquo;</span>
                       </div>
                       <div className="text-[11px]" style={{ color: '#9ca3af' }}>{c.explanation}</div>
@@ -371,7 +371,7 @@ export default function PracticePage() {
                     style={{ background: '#0e1528', borderColor: '#252d50' }}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ background: 'rgba(245,158,11,0.12)' }}>
-                      <BookmarkPlus size={14} strokeWidth={1.6} color="#f59e0b" />
+                      <BookmarkPlus size={14} strokeWidth={1.5} color="#f59e0b" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap">
@@ -391,7 +391,7 @@ export default function PracticePage() {
                       <button onClick={() => dismissWord(word.word)}
                         className="px-2 py-1.5 rounded-lg"
                         style={{ color: '#6b7280' }}>
-                        <X size={13} strokeWidth={2} />
+                        <X size={14} strokeWidth={2} />
                       </button>
                     </div>
                   </div>
@@ -433,7 +433,7 @@ export default function PracticePage() {
             <div className="flex gap-2.5 max-w-[60%]">
               <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
-                <Bot size={14} strokeWidth={1.6} color="white" />
+                <Bot size={14} strokeWidth={1.5} color="white" />
               </div>
               <div className="px-4 py-3 rounded-[14px] rounded-bl-[3px] flex items-center gap-1.5"
                 style={{ background: '#111827', border: '1px solid #1f2937' }}>
@@ -526,8 +526,8 @@ export default function PracticePage() {
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-colors hover:border-amber-500/40"
               style={{ background: '#111827', borderColor: '#1f2937' }}>
               {showTextInput
-                ? <Mic size={17} strokeWidth={1.7} color="#9ca3af" />
-                : <Keyboard size={17} strokeWidth={1.7} color="#9ca3af" />
+                ? <Mic size={16} strokeWidth={1.5} color="#9ca3af" />
+                : <Keyboard size={16} strokeWidth={1.5} color="#9ca3af" />
               }
             </button>
 
@@ -545,7 +545,7 @@ export default function PracticePage() {
                   style={{ background: isRecording ? '#ef4444' : '#f59e0b' }}>
                   {isRecording
                     ? <Square size={18} strokeWidth={0} fill="white" />
-                    : <Mic size={22} strokeWidth={2} color="#0a0f1e" />
+                    : <Mic size={20} strokeWidth={1.5} color="#0a0f1e" />
                   }
                 </button>
               </div>

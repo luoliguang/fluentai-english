@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { I18nProvider } from '@/lib/i18nContext'
 import { SessionProvider } from 'next-auth/react'
+import PageTransition from '@/components/PageTransition'
 
 export const metadata: Metadata = {
   title: 'FluentAI - 英语口语练习',
@@ -13,7 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh">
       <body>
         <SessionProvider>
-          <I18nProvider>{children}</I18nProvider>
+          <I18nProvider>
+            <PageTransition>{children}</PageTransition>
+          </I18nProvider>
         </SessionProvider>
       </body>
     </html>

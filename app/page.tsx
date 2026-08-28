@@ -78,7 +78,7 @@ export default function Dashboard() {
             <Link href="/practice"
               className="flex items-center gap-2.5 rounded-[14px] px-6 py-3.5 text-sm font-extrabold transition-opacity hover:opacity-90"
               style={{ background: '#f59e0b', color: '#0a0f1e' }}>
-              <Mic size={17} strokeWidth={2} color="#0a0f1e" />
+              <Mic size={16} strokeWidth={1.5} color="#0a0f1e" />
               {t.startSpeaking}
             </Link>
           </div>

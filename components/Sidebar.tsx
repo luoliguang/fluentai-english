@@ -11,9 +11,9 @@ export default function Sidebar() {
   const { data: session } = useSession()
 
   const navItems = [
-    { href: '/',           label: t.home,     icon: <Home size={17} strokeWidth={1.7} /> },
-    { href: '/practice',   label: t.practice, icon: <Mic size={17} strokeWidth={1.7} /> },
-    { href: '/vocabulary', label: t.wordBank,  icon: <BookOpen size={17} strokeWidth={1.7} /> },
+    { href: '/',           label: t.home,     icon: <Home size={16} strokeWidth={1.5} /> },
+    { href: '/practice',   label: t.practice, icon: <Mic size={16} strokeWidth={1.5} /> },
+    { href: '/vocabulary', label: t.wordBank,  icon: <BookOpen size={16} strokeWidth={1.5} /> },
   ]
 
   const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'User'
@@ -24,7 +24,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-7">
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#f59e0b' }}>
-          <Mic size={18} strokeWidth={2} color="#0a0f1e" />
+          <Mic size={18} strokeWidth={1.5} color="#0a0f1e" />
         </div>
         <span className="text-[18px] font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>
           Fluent<span style={{ color: '#f59e0b' }}>AI</span>
@@ -84,7 +84,7 @@ export default function Sidebar() {
             title="退出登录"
             className="flex-shrink-0 hover:opacity-70 transition-opacity"
             style={{ color: '#4b5563' }}>
-            <LogOut size={14} strokeWidth={1.8} />
+            <LogOut size={14} strokeWidth={1.5} />
           </button>
         </div>
       </div>
