@@ -45,7 +45,7 @@ export async function fetchStats() {
 // ─── 标签解析（保持不变）────────────────────────────────────────────────────
 
 export function parseWords(content: string, example: string): Word[] {
-  const regex = /\[WORD:([^:]+):([^:]*):([^:]+):([^\]]+)\]/g
+  const regex = /\[WORD:([^:]+):([^:]*):([^:]+):([^:]+):([^\]]*)\]/g
   const words: Word[] = []
   let match
   while ((match = regex.exec(content)) !== null) {
@@ -55,6 +55,7 @@ export function parseWords(content: string, example: string): Word[] {
       phonetic: match[2].trim(),
       pos: match[3].trim(),
       definition: match[4].trim(),
+      definitionZh: match[5].trim() || undefined,
       example,
       savedAt: Date.now(),
       mastery: 0,

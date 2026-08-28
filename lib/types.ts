@@ -4,6 +4,7 @@ export interface Word {
   phonetic: string
   pos: string          // 词性: adj / noun / verb / adv
   definition: string
+  definitionZh?: string
   example: string      // 原始对话中的例句
   savedAt: number      // timestamp
   mastery: number      // 0-100 掌握程度

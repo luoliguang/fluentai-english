@@ -47,8 +47,9 @@ model Word {
   word       String
   phonetic   String?
   pos        String
-  definition String
-  example    String   @db.Text
+  definition   String
+  definitionZh String?
+  example      String   @db.Text
   mastery    Int      @default(0)
   savedAt    DateTime @default(now())
 

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { word, phonetic, pos, definition, example } = body
+  const { word, phonetic, pos, definition, definitionZh, example } = body
 
   const existing = await prisma.word.findUnique({
     where: { userId_word: { userId: session.user.id, word } },
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const created = await prisma.word.create({
     data: {
       userId: session.user.id,
-      word, phonetic, pos, definition, example,
+      word, phonetic, pos, definition, definitionZh, example,
     },
   })
 

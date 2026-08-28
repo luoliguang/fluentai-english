@@ -136,7 +136,8 @@ export default function VocabularyPage() {
                     </div>
                   </div>
 
-                  <p className="text-[12.5px] leading-relaxed my-3" style={{ color: '#9ca3af' }}>{w.definition}</p>
+                  <p className="text-[12.5px] leading-relaxed mt-3 mb-1" style={{ color: '#9ca3af' }}>{w.definition}</p>
+                  {w.definitionZh && <p className="text-[11.5px] mb-3 font-medium" style={{ color: '#6b7280' }}>{w.definitionZh}</p>}
 
                   {w.example && (
                     <div className="rounded-lg px-3 py-2 mb-3" style={{ background: '#0e1528' }}>

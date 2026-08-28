@@ -33,6 +33,8 @@ export default function PracticePage() {
   const [sessionTime, setSessionTime] = useState(0)
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInput, setTextInput] = useState('')
+  const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [translating, setTranslating] = useState<string | null>(null)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const transcriptRef = useRef('')          // stale-closure fix
@@ -272,6 +274,27 @@ export default function PracticePage() {
     setPendingWords(prev => prev.filter(w => w.word !== word))
   }
 
+  const stopSpeaking = () => {
+    window.speechSynthesis?.cancel()
+    setIsSpeaking(false)
+  }
+
+  const handleTranslate = async (msgId: string, text: string) => {
+    if (translations[msgId] || translating) return
+    setTranslating(msgId)
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (data.translation) setTranslations(prev => ({ ...prev, [msgId]: data.translation }))
+    } finally {
+      setTranslating(null)
+    }
+  }
+
   const isBusy = isThinking || isStreaming
   const isOpening = messages.length <= 1
 
@@ -379,6 +402,7 @@ export default function PracticePage() {
                           style={{ background: '#1f2937', color: '#6b7280' }}>{word.pos}</span>
                       </div>
                       <p className="text-xs mt-0.5 leading-snug" style={{ color: '#9ca3af' }}>{word.definition}</p>
+                      {word.definitionZh && <p className="text-xs mt-0.5 leading-snug font-medium" style={{ color: '#6b7280' }}>{word.definitionZh}</p>}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button onClick={() => handleSaveWord(word)}
@@ -395,9 +419,25 @@ export default function PracticePage() {
                   </div>
                 ))}
 
-                <div className="text-[11px] mt-1 px-1" style={{ color: '#4b5563' }}>
-                  {new Date(msg.timestamp).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
+                <div className="flex items-center gap-3 mt-1 px-1">
+                  <span className="text-[11px]" style={{ color: '#4b5563' }}>
+                    {new Date(msg.timestamp).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {msg.role === 'assistant' && (
+                    <button
+                      onClick={() => handleTranslate(msg.id, msg.content.replace(/\[WORD:[^\]]+\]/g, '').replace(/\[CORRECTION:[^\]]+\]/g, '').trim())}
+                      className="text-[11px] font-medium transition-opacity hover:opacity-70"
+                      style={{ color: translating === msg.id ? '#6b7280' : translations[msg.id] ? '#4b5563' : '#f59e0b' }}>
+                      {translating === msg.id ? '翻译中…' : translations[msg.id] ? '已翻译' : '显示翻译'}
+                    </button>
+                  )}
                 </div>
+                {translations[msg.id] && (
+                  <div className="mt-1.5 mx-1 px-3 py-2 rounded-xl text-xs leading-relaxed"
+                    style={{ background: 'rgba(99,102,241,0.08)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.15)' }}>
+                    {translations[msg.id]}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -507,7 +547,11 @@ export default function PracticePage() {
                         <div key={i} className="wave-bar w-[3px] rounded-full" style={{ background: '#a5b4fc' }} />
                       ))}
                     </div>
-                    <span className="text-sm" style={{ color: '#9ca3af' }}>{t.lunaSpeaking}</span>
+                    <span className="flex-1 text-sm" style={{ color: '#9ca3af' }}>{t.lunaSpeaking}</span>
+                    <button onClick={stopSpeaking} className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-70"
+                      style={{ color: '#6b7280', background: '#1f2937' }}>
+                      停止
+                    </button>
                   </>
                 ) : (
                   <span className="text-sm" style={{ color: '#4b5563' }}>
