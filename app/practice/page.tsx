@@ -12,8 +12,15 @@ declare global {
   }
 }
 
+const TOPICS = [
+  { emoji: '✈️', zh: '旅游', en: "Let's talk about travel! I'd love to practice describing places I want to visit." },
+  { emoji: '💻', zh: '科技', en: "I want to discuss technology and how AI is changing our daily lives." },
+  { emoji: '🍜', zh: '美食', en: "Let's talk about food! I can describe my favorite dishes." },
+  { emoji: '🎬', zh: '电影', en: "I'd like to talk about movies or TV shows I've been watching recently." },
+]
+
 export default function PracticePage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [messages, setMessages] = useState<Message[]>([])
   const [isRecording, setIsRecording] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
@@ -23,24 +30,35 @@ export default function PracticePage() {
   const [pendingWords, setPendingWords] = useState<Word[]>([])
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [sessionTime, setSessionTime] = useState(0)
+  const [showTextInput, setShowTextInput] = useState(false)
+  const [textInput, setTextInput] = useState('')
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const transcriptRef = useRef('')          // stale-closure fix
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const textInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isThinking])
 
   useEffect(() => {
-    timerRef.current = setInterval(() => setSessionTime(t => t + 1), 1000)
+    timerRef.current = setInterval(() => setSessionTime(s => s + 1), 1000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
+
+  useEffect(() => {
+    transcriptRef.current = transcript
+  }, [transcript])
+
+  useEffect(() => {
+    if (showTextInput) textInputRef.current?.focus()
+  }, [showTextInput])
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
-  // Luna 开场白（根据语言）
   useEffect(() => {
     const opening: Message = {
       id: '0',
@@ -55,7 +73,6 @@ export default function PracticePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 流式调用 DeepSeek API
   const sendMessage = useCallback(async (userText: string) => {
     if (!userText.trim()) return
 
@@ -72,7 +89,6 @@ export default function PracticePage() {
     setMessages(prev => [...prev, userMsg])
     setIsThinking(true)
 
-    // 历史记录（不含当前用户消息）
     const history = messages.map(m => ({ role: m.role, content: m.content }))
     history.push({ role: 'user', content: userText })
 
@@ -87,7 +103,6 @@ export default function PracticePage() {
 
       if (!res.ok || !res.body) throw new Error('API error')
 
-      // 插入空的流式消息占位
       const placeholderMsg: Message = {
         id: streamId,
         role: 'assistant',
@@ -122,7 +137,6 @@ export default function PracticePage() {
             const { text } = JSON.parse(payload)
             if (text) {
               fullContent += text
-              // 实时更新气泡（去掉标签只留文本）
               setMessages(prev => prev.map(m =>
                 m.id === streamId
                   ? { ...m, content: fullContent, displayContent: renderContent(fullContent) }
@@ -133,7 +147,6 @@ export default function PracticePage() {
         }
       }
 
-      // 流结束，解析标签
       const cleanExample = fullContent.replace(/\[WORD:[^\]]+\]/g, '').replace(/\[CORRECTION:[^\]]+\]/g, '').trim()
       const words = parseWords(fullContent, cleanExample)
       const corrections = parseCorrections(fullContent)
@@ -146,7 +159,6 @@ export default function PracticePage() {
 
       if (words.length > 0) setPendingWords(words)
 
-      // TTS（去掉所有标签）
       const cleanText = fullContent
         .replace(/\[WORD:([^:]+):[^\]]+\]/g, '$1')
         .replace(/\[CORRECTION:[^\]]+\]/g, '')
@@ -166,7 +178,6 @@ export default function PracticePage() {
         timestamp: Date.now(),
       }
       setMessages(prev => {
-        // 如果占位消息已插入，替换它；否则追加
         const has = prev.find(m => m.id === streamId)
         return has ? prev.map(m => m.id === streamId ? errMsg : m) : [...prev, errMsg]
       })
@@ -190,7 +201,7 @@ export default function PracticePage() {
   const startRecording = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) {
-      alert('Your browser does not support speech recognition. Please use Chrome.')
+      setShowTextInput(true)
       return
     }
 
@@ -200,33 +211,51 @@ export default function PracticePage() {
     recognition.interimResults = true
 
     recognition.onresult = (e: SpeechRecognitionEvent) => {
-      const t = Array.from(e.results).map(r => r[0].transcript).join('')
-      setTranscript(t)
+      const text = Array.from(e.results).map(r => r[0].transcript).join('')
+      setTranscript(text)
+      transcriptRef.current = text
     }
 
     recognition.onend = () => {
       setIsRecording(false)
-      if (transcript.trim()) {
-        sendMessage(transcript)
+      const text = transcriptRef.current
+      if (text.trim()) {
+        sendMessage(text)
         setTranscript('')
+        transcriptRef.current = ''
       }
     }
 
     recognition.onerror = () => {
       setIsRecording(false)
       setTranscript('')
+      transcriptRef.current = ''
+    }
+
+    recognition.onnomatch = () => {
+      setIsRecording(false)
+      setTranscript('')
+      transcriptRef.current = ''
     }
 
     recognitionRef.current = recognition
     recognition.start()
     setIsRecording(true)
     setTranscript('')
+    transcriptRef.current = ''
     window.speechSynthesis?.cancel()
-  }, [transcript, sendMessage])
+  }, [sendMessage])
 
   const stopRecording = useCallback(() => {
     recognitionRef.current?.stop()
   }, [])
+
+  const handleSendText = () => {
+    const text = textInput.trim()
+    if (!text || isBusy) return
+    sendMessage(text)
+    setTextInput('')
+  }
 
   const handleSaveWord = (word: Word) => {
     saveWord(word)
@@ -242,12 +271,12 @@ export default function PracticePage() {
   }
 
   const isBusy = isThinking || isStreaming
+  const isOpening = messages.length <= 1
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#0a0f1e' }}>
       <Sidebar />
 
-      {/* 主对话区 */}
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Header */}
@@ -289,7 +318,6 @@ export default function PracticePage() {
         <div className="flex-1 overflow-y-auto px-7 py-6 flex flex-col gap-5">
           {messages.map(msg => (
             <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse self-end max-w-[68%]' : 'max-w-[82%]'}`}>
-              {/* Avatar */}
               <div className={`w-8 h-8 flex items-center justify-center text-[13px] font-bold flex-shrink-0 mt-0.5 ${
                 msg.role === 'assistant' ? 'rounded-[9px]' : 'rounded-full'}`}
                 style={msg.role === 'assistant'
@@ -301,7 +329,6 @@ export default function PracticePage() {
               </div>
 
               <div className="flex-1 min-w-0">
-                {/* 消息气泡 */}
                 <div
                   className="px-4 py-3 text-sm leading-relaxed"
                   style={{
@@ -317,7 +344,7 @@ export default function PracticePage() {
                   )}}
                 />
 
-                {/* 语法纠错卡片（固定显示在 assistant 消息下面） */}
+                {/* 语法纠错 */}
                 {msg.role === 'assistant' && msg.corrections.map((c, i) => (
                   <div key={i} className="flex items-start gap-3 mt-2 rounded-xl p-3 border"
                     style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.2)' }}>
@@ -384,7 +411,31 @@ export default function PracticePage() {
             </div>
           ))}
 
-          {/* Thinking indicator（等待第一个字节时显示） */}
+          {/* 话题建议卡片（仅开场时显示） */}
+          {isOpening && !isBusy && (
+            <div className="mt-2">
+              <p className="text-[12px] font-semibold mb-3 px-0.5" style={{ color: '#4b5563' }}>
+                {t.topicsTitle}
+              </p>
+              <div className="grid grid-cols-2 gap-2.5">
+                {TOPICS.map(topic => (
+                  <button
+                    key={topic.zh}
+                    onClick={() => sendMessage(topic.en)}
+                    className="flex items-center gap-2.5 rounded-xl px-4 py-3 border text-left transition-all hover:border-amber-500/40 hover:bg-amber-500/5"
+                    style={{ background: '#111827', borderColor: '#1f2937' }}
+                  >
+                    <span className="text-xl flex-shrink-0">{topic.emoji}</span>
+                    <span className="text-sm font-semibold" style={{ color: '#d1d5db' }}>
+                      {lang === 'zh' ? topic.zh : topic.en.split('!')[0].replace("Let's talk about ", '').replace("I want to discuss ", '').replace("I'd like to talk about ", '')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Thinking indicator */}
           {isThinking && (
             <div className="flex gap-2.5 max-w-[60%]">
               <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0"
@@ -406,72 +457,130 @@ export default function PracticePage() {
         {/* Input area */}
         <div className="px-7 pb-6 pt-4 flex-shrink-0" style={{ borderTop: '1px solid #1a2540', background: '#060b17' }}>
           <div className="flex items-center gap-3">
-            <div className="flex-1 rounded-2xl px-4 py-3.5 flex items-center gap-3 border transition-colors"
-              style={{
-                background: '#111827',
-                borderColor: isRecording ? '#f59e0b' : '#1f2937',
-                borderWidth: isRecording ? '1.5px' : '1px',
-              }}>
-              {isRecording ? (
-                <>
-                  <div className="flex items-center gap-0.5 h-7 flex-shrink-0">
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="wave-bar w-[3px] rounded-full" style={{ background: '#f59e0b' }} />
-                    ))}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm italic" style={{ color: transcript ? '#d1d5db' : '#6b7280' }}>
-                      {transcript || t.listening}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ef4444' }} />
-                      <span className="text-[11px] font-semibold" style={{ color: '#f59e0b' }}>{t.recording}</span>
-                    </div>
-                  </div>
-                </>
-              ) : isSpeaking ? (
-                <>
-                  <div className="flex items-center gap-0.5 h-7 flex-shrink-0">
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="wave-bar w-[3px] rounded-full" style={{ background: '#a5b4fc' }} />
-                    ))}
-                  </div>
-                  <span className="text-sm" style={{ color: '#9ca3af' }}>{t.lunaSpeaking}</span>
-                </>
-              ) : (
-                <span className="text-sm" style={{ color: '#4b5563' }}>
-                  {isThinking || isStreaming ? t.lunaThinking : t.tapMicHint}
-                </span>
-              )}
-            </div>
 
-            <div className="relative flex-shrink-0">
-              {isRecording && (
-                <div className="pulse-ring absolute inset-[-10px] rounded-full border"
-                  style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.05)' }} />
-              )}
-              <button
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isBusy}
-                className="w-14 h-14 rounded-full flex items-center justify-center transition-all relative z-10 disabled:opacity-50"
-                style={{ background: isRecording ? '#ef4444' : '#f59e0b' }}>
+            {showTextInput ? (
+              /* 文字输入模式 */
+              <>
+                <input
+                  ref={textInputRef}
+                  type="text"
+                  value={textInput}
+                  onChange={e => setTextInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendText()}
+                  placeholder={t.typeHint}
+                  disabled={isBusy}
+                  className="flex-1 rounded-2xl px-4 py-3.5 text-sm border outline-none transition-colors disabled:opacity-50"
+                  style={{
+                    background: '#111827',
+                    borderColor: '#1f2937',
+                    color: '#e5e7eb',
+                  }}
+                />
+                <button
+                  onClick={handleSendText}
+                  disabled={isBusy || !textInput.trim()}
+                  className="px-5 py-3.5 rounded-2xl text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-40"
+                  style={{ background: '#f59e0b', color: '#0a0f1e' }}>
+                  {t.send}
+                </button>
+              </>
+            ) : (
+              /* 语音输入模式 */
+              <div className="flex-1 rounded-2xl px-4 py-3.5 flex items-center gap-3 border transition-colors"
+                style={{
+                  background: '#111827',
+                  borderColor: isRecording ? '#f59e0b' : '#1f2937',
+                  borderWidth: isRecording ? '1.5px' : '1px',
+                }}>
                 {isRecording ? (
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="#fff">
-                    <rect x="4" y="4" width="10" height="10" rx="2"/>
-                  </svg>
+                  <>
+                    <div className="flex items-center gap-0.5 h-7 flex-shrink-0">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="wave-bar w-[3px] rounded-full" style={{ background: '#f59e0b' }} />
+                      ))}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm italic" style={{ color: transcript ? '#d1d5db' : '#6b7280' }}>
+                        {transcript || t.listening}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ef4444' }} />
+                        <span className="text-[11px] font-semibold" style={{ color: '#f59e0b' }}>{t.recording}</span>
+                      </div>
+                    </div>
+                  </>
+                ) : isSpeaking ? (
+                  <>
+                    <div className="flex items-center gap-0.5 h-7 flex-shrink-0">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="wave-bar w-[3px] rounded-full" style={{ background: '#a5b4fc' }} />
+                      ))}
+                    </div>
+                    <span className="text-sm" style={{ color: '#9ca3af' }}>{t.lunaSpeaking}</span>
+                  </>
                 ) : (
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <rect x="7" y="2" width="8" height="12" rx="4" fill="#0a0f1e"/>
-                    <path d="M4 12a7 7 0 0014 0" stroke="#0a0f1e" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M11 19v2" stroke="#0a0f1e" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                  <span className="text-sm" style={{ color: '#4b5563' }}>
+                    {isBusy ? t.lunaThinking : t.tapMicHint}
+                  </span>
                 )}
-              </button>
-            </div>
+              </div>
+            )}
+
+            {/* 语音 / 文字切换按钮 */}
+            <button
+              onClick={() => setShowTextInput(v => !v)}
+              title={showTextInput ? t.switchToVoice : t.switchToText}
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-colors hover:border-amber-500/40"
+              style={{ background: '#111827', borderColor: '#1f2937' }}>
+              {showTextInput ? (
+                /* 麦克风图标 */
+                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="#9ca3af" strokeWidth="1.7" strokeLinecap="round">
+                  <rect x="5.5" y="1.5" width="6" height="9" rx="3"/>
+                  <path d="M2.5 8.5a6 6 0 0012 0"/><path d="M8.5 14.5v2"/>
+                </svg>
+              ) : (
+                /* 键盘图标 */
+                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="#9ca3af" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1.5" y="4" width="14" height="9" rx="2"/>
+                  <path d="M4.5 8h1M8.5 8h1M12.5 8h1M6 11h5"/>
+                </svg>
+              )}
+            </button>
+
+            {/* 麦크风 / 停止按钮（文字模式下隐藏） */}
+            {!showTextInput && (
+              <div className="relative flex-shrink-0">
+                {isRecording && (
+                  <div className="pulse-ring absolute inset-[-10px] rounded-full border"
+                    style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.05)' }} />
+                )}
+                <button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isBusy}
+                  className="w-14 h-14 rounded-full flex items-center justify-center transition-all relative z-10 disabled:opacity-50"
+                  style={{ background: isRecording ? '#ef4444' : '#f59e0b' }}>
+                  {isRecording ? (
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="#fff">
+                      <rect x="4" y="4" width="10" height="10" rx="2"/>
+                    </svg>
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                      <rect x="7" y="2" width="8" height="12" rx="4" fill="#0a0f1e"/>
+                      <path d="M4 12a7 7 0 0014 0" stroke="#0a0f1e" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M11 19v2" stroke="#0a0f1e" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-          <p className="text-[11px] mt-2 px-0.5" style={{ color: '#374151' }}>
-            {isRecording ? t.tapStopHint : t.tapMicHint}
-          </p>
+
+          {/* 底部提示：仅录音时显示，避免重复 */}
+          {isRecording && (
+            <p className="text-[11px] mt-2 px-0.5" style={{ color: '#374151' }}>
+              {t.tapStopHint}
+            </p>
+          )}
         </div>
       </div>
 

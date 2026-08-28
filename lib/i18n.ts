@@ -61,6 +61,11 @@ export const zh = {
   correctionShould: '建议：',
   apiError: '出错了，请检查 API Key 后重试。',
   lunaOpening: "你好！我是 Luna，你的英语口语教练 😊 今天想聊什么话题？可以是旅游、科技、日常生活，或者任何你感兴趣的事！",
+  topicsTitle: '选个话题开始吧',
+  typeHint: '输入消息...',
+  send: '发送',
+  switchToText: '切换文字输入',
+  switchToVoice: '切换语音',
 }
 
 export const en = {
@@ -122,6 +127,11 @@ export const en = {
   correctionShould: 'Better:',
   apiError: 'Something went wrong. Please check your API key and try again.',
   lunaOpening: "Hi! I'm Luna, your English tutor 😊 Let's have a natural conversation — the best way to improve! What topic interests you today? We could talk about travel, technology, daily life, or anything you like.",
+  topicsTitle: 'Pick a topic to get started',
+  typeHint: 'Type a message...',
+  send: 'Send',
+  switchToText: 'Switch to text',
+  switchToVoice: 'Switch to voice',
 }
 
 export type Translations = typeof zh
