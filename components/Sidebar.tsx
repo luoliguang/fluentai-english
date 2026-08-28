@@ -57,16 +57,19 @@ export default function Sidebar() {
         {/* Language toggle */}
         <button
           onClick={toggleLang}
-          className="flex items-center gap-2 px-3 py-2 rounded-[10px] w-full transition-colors hover:opacity-80"
+          className="flex items-center justify-between px-3 py-2 rounded-[10px] w-full transition-opacity hover:opacity-80"
           style={{ background: '#111827', border: '1px solid #1f2937' }}>
-          <span className="text-base leading-none">🌐</span>
-          <span className="text-[12px] font-semibold" style={{ color: '#9ca3af' }}>
-            {lang === 'zh' ? '中文 → English' : 'English → 中文'}
-          </span>
-          <span className="ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded"
-            style={{ background: '#1f2937', color: '#f59e0b' }}>
-            {t.langToggle}
-          </span>
+          <span className="text-[12px] font-semibold" style={{ color: '#9ca3af' }}>语言 / Language</span>
+          <div className="flex items-center gap-1 p-0.5 rounded-lg" style={{ background: '#0a0f1e' }}>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md transition-colors"
+              style={{ background: lang === 'zh' ? '#f59e0b' : 'transparent', color: lang === 'zh' ? '#0a0f1e' : '#6b7280' }}>
+              中
+            </span>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md transition-colors"
+              style={{ background: lang === 'en' ? '#f59e0b' : 'transparent', color: lang === 'en' ? '#0a0f1e' : '#6b7280' }}>
+              EN
+            </span>
+          </div>
         </button>
 
         {/* Profile + logout */}

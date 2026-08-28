@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar'
 import { Message, Word } from '@/lib/types'
 import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
 import { useI18n } from '@/lib/i18nContext'
+import { usePracticeStore } from '@/lib/usePracticeStore'
 
 declare global {
   interface Window {
@@ -22,18 +23,20 @@ const TOPICS = [
 
 export default function PracticePage() {
   const { t, lang } = useI18n()
-  const [messages, setMessages] = useState<Message[]>([])
+  const {
+    messages, setMessages,
+    sessionWords, setSessionWords,
+    pendingWords, setPendingWords,
+    sessionTime, setSessionTime,
+    translations, setTranslations,
+  } = usePracticeStore()
   const [isRecording, setIsRecording] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [transcript, setTranscript] = useState('')
-  const [sessionWords, setSessionWords] = useState<Word[]>([])
-  const [pendingWords, setPendingWords] = useState<Word[]>([])
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const [sessionTime, setSessionTime] = useState(0)
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInput, setTextInput] = useState('')
-  const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translating, setTranslating] = useState<string | null>(null)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
@@ -47,9 +50,9 @@ export default function PracticePage() {
   }, [messages, isThinking])
 
   useEffect(() => {
-    timerRef.current = setInterval(() => setSessionTime(s => s + 1), 1000)
+    timerRef.current = setInterval(() => setSessionTime((s: number) => s + 1), 1000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [])
+  }, [setSessionTime])
 
   useEffect(() => {
     transcriptRef.current = transcript
@@ -63,16 +66,17 @@ export default function PracticePage() {
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
   useEffect(() => {
-    const opening: Message = {
-      id: '0',
-      role: 'assistant',
-      content: t.lunaOpening,
-      displayContent: t.lunaOpening,
-      words: [],
-      corrections: [],
-      timestamp: Date.now(),
+    if (messages.length === 0) {
+      setMessages([{
+        id: '0',
+        role: 'assistant',
+        content: t.lunaOpening,
+        displayContent: t.lunaOpening,
+        words: [],
+        corrections: [],
+        timestamp: Date.now(),
+      }])
     }
-    setMessages([opening])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -168,6 +172,15 @@ export default function PracticePage() {
         .trim()
       speakText(cleanText)
 
+      // 自动翻译（后台静默执行，点击"显示翻译"时立即呈现）
+      fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleanText }),
+      }).then(r => r.json()).then(data => {
+        if (data.translation) setTranslations((prev: Record<string, string>) => ({ ...prev, [streamId]: data.translation }))
+      }).catch(() => {})
+
     } catch (err) {
       console.error(err)
       setIsThinking(false)
@@ -223,7 +236,12 @@ export default function PracticePage() {
       setIsRecording(false)
       const text = transcriptRef.current
       if (text.trim()) {
-        sendMessage(text)
+        setTimeout(() => {
+          sendMessage(text)
+          setTranscript('')
+          transcriptRef.current = ''
+        }, 500)
+      } else {
         setTranscript('')
         transcriptRef.current = ''
       }
