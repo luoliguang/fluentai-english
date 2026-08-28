@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Search, ArrowRight, X } from 'lucide-react'
+import { MagnifyingGlass, ArrowRight, X } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
 import { fetchWords, patchMastery, removeWord } from '@/lib/wordBank'
 import { Word } from '@/lib/types'
@@ -74,7 +74,7 @@ export default function VocabularyPage() {
                 }}
                 className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90"
                 style={{ background: '#f59e0b', color: '#0a0f1e' }}>
-                <ArrowRight size={16} strokeWidth={1.5} color="#0a0f1e" />
+                <ArrowRight size={16} weight="regular" color="#0a0f1e" />
                 {t.quickReview}
               </button>
             )}
@@ -83,7 +83,7 @@ export default function VocabularyPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 flex-1 max-w-xs border"
               style={{ background: '#111827', borderColor: '#1f2937' }}>
-              <Search size={16} strokeWidth={1.5} color="#6b7280" />
+              <MagnifyingGlass size={16} weight="regular" color="#6b7280" />
               <input
                 type="text"
                 value={search}
@@ -131,7 +131,7 @@ export default function VocabularyPage() {
                       <button onClick={() => handleDelete(w.id)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ color: '#6b7280' }}>
-                        <X size={14} strokeWidth={2} />
+                        <X size={14} weight="bold" />
                       </button>
                     </div>
                   </div>

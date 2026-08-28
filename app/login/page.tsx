@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Mic, Loader2 } from 'lucide-react'
+import { Microphone, CircleNotch } from '@phosphor-icons/react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -50,7 +50,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-10">
           <div className="w-10 h-10 rounded-[10px] flex items-center justify-center" style={{ background: '#f59e0b' }}>
-            <Mic size={20} strokeWidth={2} color="#0a0f1e" />
+            <Microphone size={20} weight="bold" color="#0a0f1e" />
           </div>
           <span className="text-[22px] font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>
             Fluent<span style={{ color: '#f59e0b' }}>AI</span>
@@ -116,7 +116,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 rounded-xl text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 mt-1"
               style={{ background: '#f59e0b', color: '#0a0f1e' }}>
-              {loading && <Loader2 size={15} className="animate-spin" />}
+              {loading && <CircleNotch size={15} weight="bold" className="animate-spin" />}
               {mode === 'login' ? '登录' : '注册'}
             </button>
           </form>
