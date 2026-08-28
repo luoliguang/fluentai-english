@@ -1,0 +1,109 @@
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useI18n } from '@/lib/i18nContext'
+
+export default function Sidebar() {
+  const pathname = usePathname()
+  const { t, lang, toggleLang } = useI18n()
+
+  const navItems = [
+    {
+      href: '/',
+      label: t.home,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2.5 8L8.5 2.5l6 5.5"/><path d="M4.5 6.5v8h3v-4h2v4h3v-8"/>
+        </svg>
+      ),
+    },
+    {
+      href: '/practice',
+      label: t.practice,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="5" y="2" width="7" height="9" rx="3.5"/>
+          <path d="M2.5 9a6 6 0 0012 0"/><path d="M8.5 15v2"/>
+        </svg>
+      ),
+    },
+    {
+      href: '/vocabulary',
+      label: t.wordBank,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2.5" y="3" width="12" height="11" rx="2"/>
+          <path d="M5.5 7h6M5.5 10.5h4"/>
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <div className="w-[220px] flex-shrink-0 flex flex-col h-full" style={{ background: '#060b17', borderRight: '1px solid #1a2540' }}>
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-5 py-7">
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#f59e0b' }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="5" y="2" width="8" height="10" rx="4" fill="#0a0f1e"/>
+            <path d="M3 10a6 6 0 0012 0" stroke="#0a0f1e" strokeWidth="1.8" strokeLinecap="round"/>
+            <path d="M9 16v2" stroke="#0a0f1e" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <span className="text-[18px] font-extrabold tracking-tight" style={{ color: '#f9fafb' }}>
+          Fluent<span style={{ color: '#f59e0b' }}>AI</span>
+        </span>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 flex flex-col gap-1">
+        {navItems.map(item => {
+          const active = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] transition-colors"
+              style={{
+                background: active ? 'rgba(245,158,11,0.1)' : 'transparent',
+                color: active ? '#f59e0b' : '#6b7280',
+              }}
+            >
+              <span style={{ color: active ? '#f59e0b' : '#6b7280' }}>{item.icon}</span>
+              <span className={`text-[13.5px] ${active ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Profile + Language toggle */}
+      <div className="p-3 pb-5 flex flex-col gap-2" style={{ borderTop: '1px solid #1a2540' }}>
+        {/* Language toggle */}
+        <button
+          onClick={toggleLang}
+          className="flex items-center gap-2 px-3 py-2 rounded-[10px] w-full transition-colors hover:opacity-80"
+          style={{ background: '#111827', border: '1px solid #1f2937' }}
+        >
+          <span className="text-base leading-none">🌐</span>
+          <span className="text-[12px] font-semibold" style={{ color: '#9ca3af' }}>
+            {lang === 'zh' ? '中文 → English' : 'English → 中文'}
+          </span>
+          <span className="ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded"
+            style={{ background: '#1f2937', color: '#f59e0b' }}>
+            {t.langToggle}
+          </span>
+        </button>
+
+        {/* Profile */}
+        <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px]">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>G</div>
+          <div>
+            <div className="text-[13px] font-semibold" style={{ color: '#f9fafb' }}>Giluoo</div>
+            <div className="text-[11px]" style={{ color: '#6b7280' }}>Intermediate · B1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
