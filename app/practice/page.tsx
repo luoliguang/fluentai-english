@@ -29,6 +29,7 @@ export default function PracticePage() {
     pendingWords, setPendingWords,
     sessionTime, setSessionTime,
     translations, setTranslations,
+    ttsVoice, setTtsVoice,
   } = usePracticeStore()
   const [isRecording, setIsRecording] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
@@ -220,12 +221,13 @@ export default function PracticePage() {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice: ttsVoice }),
       })
       if (!res.ok) { setIsSpeaking(false); return }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
+      audio.volume = 1
       audioRef.current = audio
       audio.onended = () => { URL.revokeObjectURL(url); setIsSpeaking(false) }
       audio.onerror = () => { URL.revokeObjectURL(url); setIsSpeaking(false) }
@@ -351,6 +353,20 @@ export default function PracticePage() {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
+            {/* 声音选择器 */}
+            <select
+              value={ttsVoice}
+              onChange={e => setTtsVoice(e.target.value)}
+              className="text-xs rounded-lg px-2 py-1.5 border outline-none cursor-pointer"
+              style={{ background: '#111827', borderColor: '#1f2937', color: '#9ca3af' }}
+              title="选择 AI 声音"
+            >
+              <option value="FunAudioLLM/CosyVoice2-0.5B:anna">Anna</option>
+              <option value="FunAudioLLM/CosyVoice2-0.5B:bella">Bella</option>
+              <option value="FunAudioLLM/CosyVoice2-0.5B:claire">Claire</option>
+              <option value="FunAudioLLM/CosyVoice2-0.5B:david">David</option>
+              <option value="FunAudioLLM/CosyVoice2-0.5B:ethan">Ethan</option>
+            </select>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border"
               style={{ background: '#111827', borderColor: '#1f2937', color: '#9ca3af' }}>
               <Clock size={14} weight="regular" color="#6b7280" />

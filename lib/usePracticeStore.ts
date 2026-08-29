@@ -11,12 +11,14 @@ interface PracticeStore {
   pendingWords: Word[]
   sessionTime: number
   translations: Record<string, string>
+  ttsVoice: string
 
   setMessages: (fn: Updater<Message[]>) => void
   setSessionWords: (fn: Updater<Word[]>) => void
   setPendingWords: (fn: Updater<Word[]>) => void
   setSessionTime: (fn: Updater<number>) => void
   setTranslations: (fn: Updater<Record<string, string>>) => void
+  setTtsVoice: (voice: string) => void
 }
 
 export const usePracticeStore = create<PracticeStore>((set) => ({
@@ -25,10 +27,12 @@ export const usePracticeStore = create<PracticeStore>((set) => ({
   pendingWords: [],
   sessionTime: 0,
   translations: {},
+  ttsVoice: 'FunAudioLLM/CosyVoice2-0.5B:anna',
 
   setMessages: (fn) => set((s) => ({ messages: apply(s.messages, fn) })),
   setSessionWords: (fn) => set((s) => ({ sessionWords: apply(s.sessionWords, fn) })),
   setPendingWords: (fn) => set((s) => ({ pendingWords: apply(s.pendingWords, fn) })),
   setSessionTime: (fn) => set((s) => ({ sessionTime: apply(s.sessionTime, fn) })),
   setTranslations: (fn) => set((s) => ({ translations: apply(s.translations, fn) })),
+  setTtsVoice: (voice) => set({ ttsVoice: voice }),
 }))

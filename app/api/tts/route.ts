@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { text } = await req.json()
+  const { text, voice } = await req.json()
   if (!text?.trim()) return NextResponse.json({ error: 'No text' }, { status: 400 })
 
   const apiKey = process.env.SILICONFLOW_API_KEY
@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'FunAudioLLM/CosyVoice2-0.5B',
+      model: (voice ?? 'FunAudioLLM/CosyVoice2-0.5B:anna').split(':')[0],
       input: text,
-      voice: 'FunAudioLLM/CosyVoice2-0.5B:anna',
+      voice: voice ?? 'FunAudioLLM/CosyVoice2-0.5B:anna',
       response_format: 'mp3',
       speed: 1,
     }),
