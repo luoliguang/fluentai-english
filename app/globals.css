@@ -5,11 +5,47 @@
 
 * { box-sizing: border-box; }
 
+:root {
+  --canvas: #0d1117;
+  --surface-1: #151b23;
+  --surface-2: #202832;
+  --surface-3: #0a0f14;
+  --border: #27313c;
+  --border-soft: #202934;
+  --ink: #f4f7fa;
+  --ink-secondary: #d9e0e7;
+  --ink-muted: #98a4b1;
+  --ink-dim: #687582;
+  --ink-faint: #4d5a66;
+  --accent: #f4a62a;
+  --accent-hover: rgba(244, 166, 42, 0.11);
+  --accent-text: #ffd27a;
+  --luna: linear-gradient(135deg, #5367d8, #7656b8);
+  --success: #36c995;
+  --danger: #ed6b6b;
+}
+
 body {
-  background: #0a0f1e;
-  color: #f9fafb;
+  background: var(--canvas);
+  color: var(--ink);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; }
+
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 ::-webkit-scrollbar { width: 6px; }

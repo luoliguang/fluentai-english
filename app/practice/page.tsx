@@ -1,13 +1,33 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 
+type BrowserSpeechEvent = {
+  resultIndex?: number
+  results: ArrayLike<{ 0: { transcript: string } }>
+}
+
+type BrowserSpeechErrorEvent = {
+  error?: string
+}
+
+type BrowserSpeechRecognition = {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onresult: ((event: BrowserSpeechEvent) => void) | null
+  onerror: ((event: BrowserSpeechErrorEvent) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
+    SpeechRecognition?: { new (): BrowserSpeechRecognition }
+    webkitSpeechRecognition?: { new (): BrowserSpeechRecognition }
   }
 }
-import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate, GearSix, CircleNotch } from '@phosphor-icons/react'
+import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate, GearSix, CircleNotch, ChatCircleDots } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
 import { Message, Word } from '@/lib/types'
 import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
@@ -48,11 +68,13 @@ export default function PracticePage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const textInputRef = useRef<HTMLInputElement>(null)
+  const recordingStateRef = useRef(false)
+  const speechTranscriptRef = useRef('')
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -253,6 +275,9 @@ export default function PracticePage() {
       return
     }
     stopSpeakingAudio()
+    recordingStateRef.current = true
+    speechTranscriptRef.current = ''
+    setTranscript('')
 
     // SpeechRecognition for real-time interim display only
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -261,13 +286,26 @@ export default function PracticePage() {
       rec.lang = 'en-US'
       rec.continuous = true
       rec.interimResults = true
-      rec.onresult = (e: SpeechRecognitionEvent) => {
-        const text = Array.from(e.results).map(r => r[0].transcript).join('')
-        setTranscript(text)
+      rec.onresult = (e: BrowserSpeechEvent) => {
+        const nextTranscript = Array.from(e.results)
+          .map(result => result[0].transcript)
+          .join('')
+          .trim()
+        speechTranscriptRef.current = nextTranscript
+        setTranscript(nextTranscript)
       }
-      rec.onerror = () => {}
+      rec.onerror = (event: BrowserSpeechErrorEvent) => {
+        if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(event.error ?? '')) {
+          recognitionRef.current = null
+        }
+      }
+      rec.onend = () => {
+        if (recordingStateRef.current && recognitionRef.current === rec) {
+          try { rec.start() } catch {}
+        }
+      }
       recognitionRef.current = rec
-      rec.start()
+      try { rec.start() } catch {}
     }
 
     try {
@@ -289,7 +327,7 @@ export default function PracticePage() {
           fd.append('model', asrModel)
           const res = await fetch('/api/asr', { method: 'POST', body: fd })
           const data = await res.json()
-          const text = (data.text ?? '').trim()
+          const text = (data.text ?? speechTranscriptRef.current).trim()
           if (text) await sendMessageRef.current?.(text)
         } catch (e) {
           console.error('ASR error', e)
@@ -301,8 +339,8 @@ export default function PracticePage() {
       mr.start()
       mediaRecorderRef.current = mr
       setIsRecording(true)
-      setTranscript('')
     } catch {
+      recordingStateRef.current = false
       recognitionRef.current?.stop()
       recognitionRef.current = null
       setShowTextInput(true)
@@ -310,6 +348,7 @@ export default function PracticePage() {
   }, [asrModel])
 
   const stopRecording = useCallback(() => {
+    recordingStateRef.current = false
     recognitionRef.current?.stop()
     recognitionRef.current = null
     mediaRecorderRef.current?.stop()
@@ -358,16 +397,16 @@ export default function PracticePage() {
   const isOpening = messages.length <= 1
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#0a0f1e' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--canvas)' }}>
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 md:px-7 py-3 md:py-4 flex-shrink-0" style={{ borderBottom: '1px solid #1a2540' }}>
+        <div className="flex items-center justify-between px-4 md:px-8 py-3.5 md:py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-[18px] font-black"
-              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', letterSpacing: '-0.5px' }}>
+            <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[18px] font-black"
+              style={{ background: 'var(--luna)', color: 'white' }}>
               L
             </div>
             <div>
@@ -415,7 +454,7 @@ export default function PracticePage() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-7 py-4 md:py-6 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-4 md:px-12 py-5 md:py-8 flex flex-col gap-5">
           {messages.map(msg => (
             <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse self-end max-w-[68%]' : 'max-w-[82%]'}`}>
               <div className={`w-8 h-8 flex items-center justify-center text-[13px] font-bold flex-shrink-0 mt-0.5 ${
@@ -611,7 +650,9 @@ export default function PracticePage() {
                       ))}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium" style={{ color: '#f59e0b' }}>{t.listening}</div>
+                      <div className="text-sm font-medium max-h-10 overflow-y-auto leading-relaxed" style={{ color: transcript ? '#f9fafb' : '#f59e0b' }}>
+                        {transcript || t.listening}
+                      </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ef4444', animation: 'pulse 1s infinite' }} />
                         <span className="text-[11px] font-semibold" style={{ color: '#f59e0b' }}>{t.recording}</span>
@@ -697,27 +738,46 @@ export default function PracticePage() {
         </div>
       )}
 
-      {/* 本次单词侧边栏（仅桌面端） */}
-      <div className="hidden md:flex w-60 flex-shrink-0 flex-col" style={{ background: '#060b17', borderLeft: '1px solid #1a2540' }}>
-        <div className="flex items-center justify-between px-4 py-5 flex-shrink-0" style={{ borderBottom: '1px solid #1a2540' }}>
-          <h3 className="text-[13px] font-bold" style={{ color: '#f9fafb' }}>{t.sessionWordsTitle}</h3>
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: '#1f2937', color: '#9ca3af' }}>{sessionWords.length}</span>
+      {/* 学习反馈侧栏（仅桌面端） */}
+      <div className="hidden lg:flex w-[260px] flex-shrink-0 flex-col" style={{ background: 'var(--surface-3)', borderLeft: '1px solid var(--border)' }}>
+        <div className="px-5 py-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <ChatCircleDots size={16} weight="fill" color="var(--accent)" />
+            <h3 className="text-[13px] font-bold" style={{ color: 'var(--ink)' }}>{t.learningFeedback}</h3>
+          </div>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--ink-dim)' }}>{t.learningFeedbackDesc}</p>
         </div>
-        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl p-3" style={{ background: 'var(--surface-1)' }}>
+              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>时间</div>
+              <div className="text-lg font-extrabold" style={{ color: 'var(--ink)' }}>{formatTime(sessionTime)}</div>
+            </div>
+            <div className="rounded-xl p-3" style={{ background: 'var(--surface-1)' }}>
+              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>新词</div>
+              <div className="text-lg font-extrabold" style={{ color: 'var(--accent)' }}>{pendingWords.length}</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--ink-dim)' }}>{t.sessionWordsTitle}</span>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--ink-faint)' }}>{sessionWords.length}</span>
+          </div>
           {sessionWords.length === 0 ? (
-            <p className="text-[12px] text-center mt-6 leading-relaxed" style={{ color: '#4b5563' }}>
+            <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)' }}>
+              <BookmarkSimple size={17} weight="regular" color="var(--ink-dim)" className="mb-2" />
+              <p className="text-[12px] leading-relaxed" style={{ color: 'var(--ink-dim)' }}>
               {t.noSessionWords}
-            </p>
+              </p>
+            </div>
           ) : (
             sessionWords.map(w => (
-              <div key={w.id} className="rounded-xl p-3 border" style={{ background: '#111827', borderColor: '#1f2937' }}>
+              <div key={w.id} className="rounded-xl p-3 border" style={{ background: 'var(--surface-1)', borderColor: 'var(--border-soft)' }}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[13.5px] font-bold" style={{ color: '#fcd34d' }}>{w.word}</span>
+                  <span className="text-[13.5px] font-bold" style={{ color: 'var(--accent-text)' }}>{w.word}</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                    style={{ background: '#1f2937', color: '#6b7280' }}>{w.pos}</span>
+                    style={{ background: 'var(--surface-2)', color: 'var(--ink-dim)' }}>{w.pos}</span>
                 </div>
-                <p className="text-[11px] leading-snug" style={{ color: '#6b7280' }}>{w.definition}</p>
+                <p className="text-[11px] leading-snug" style={{ color: 'var(--ink-muted)' }}>{w.definition}</p>
               </div>
             ))
           )}

@@ -9,12 +9,13 @@
 
 ## 功能特点
 
-- **AI 对话练习** — 通过语音（Web Speech API）或文字与 Luna 对话，回复实时流式输出
+- **AI 对话练习** — 通过语音或文字与 Luna 对话，回复实时流式输出
 - **语法纠错** — 每条消息后 Luna 自动检查语法错误，以中文说明错在哪、应该怎么说
 - **词汇自动标注** — Luna 在回复中使用 B2–C1 级别词汇时，会自动高亮并弹出保存提示
 - **单词本** — 管理所有已保存单词，追踪掌握进度，按学习状态筛选
 - **中英双语界面** — 随时切换界面语言
-- **无需注册** — 所有数据存储在浏览器本地，无需账号
+- **账号与单词本** — 使用邮箱密码登录，单词和掌握度保存到 PostgreSQL
+- **混合语音能力** — 浏览器实时显示语音状态，SiliconFlow 负责最终 ASR 和 CosyVoice 朗读
 
 ## 技术栈
 
@@ -24,8 +25,10 @@
 | 语言 | TypeScript |
 | 样式 | Tailwind CSS |
 | AI | DeepSeek Chat API（通过 OpenAI SDK 调用） |
-| 语音 | Web Speech API（浏览器原生） |
-| 数据存储 | localStorage（无后端数据库） |
+| 语音识别 | Web Speech API + SiliconFlow ASR |
+| 语音合成 | SiliconFlow CosyVoice |
+| 数据存储 | PostgreSQL（Prisma） |
+| 登录 | NextAuth Credentials |
 
 ## 快速开始
 

@@ -8,22 +8,22 @@
 
 | Token | Value | Usage |
 |---|---|---|
-| `canvas` | `#0a0f1e` | 最深背景（全局页面背景） |
-| `surface-1` | `#111827` | 卡片、输入框、面板背景 |
-| `surface-2` | `#1f2937` | 分割线、标签背景、进度条轨道 |
-| `surface-3` | `#060b17` | Sidebar、底部输入栏背景 |
-| `border` | `#1a2540` | Sidebar 分隔线 |
-| `border-soft` | `#1f2937` | 卡片边框 |
-| `ink` | `#f9fafb` | 主要文本、标题 |
-| `ink-secondary` | `#e5e7eb` | 消息气泡文本 |
-| `ink-muted` | `#9ca3af` | 次要文本、描述 |
-| `ink-dim` | `#6b7280` | 占位符、时间戳 |
-| `ink-faint` | `#4b5563` | 最淡提示文本 |
-| `accent` | `#f59e0b` | 主操作色（按钮、高亮、激活状态） |
-| `accent-hover` | `rgba(245,158,11,0.1)` | 激活背景叠加 |
-| `accent-text` | `#fcd34d` | 强调词汇文本、单词高亮 |
+| `canvas` | `#0d1117` | 全局页面背景 |
+| `surface-1` | `#151b23` | 卡片、输入框、面板背景 |
+| `surface-2` | `#202832` | 标签背景、进度条轨道 |
+| `surface-3` | `#0a0f14` | Sidebar、底部输入栏、反馈栏背景 |
+| `border` | `#27313c` | 页面分隔线 |
+| `border-soft` | `#202934` | 卡片边框 |
+| `ink` | `#f4f7fa` | 主要文本、标题 |
+| `ink-secondary` | `#d9e0e7` | 消息气泡文本 |
+| `ink-muted` | `#98a4b1` | 次要文本、描述 |
+| `ink-dim` | `#687582` | 占位符、时间戳 |
+| `ink-faint` | `#4d5a66` | 最淡提示文本 |
+| `accent` | `#f4a62a` | 主操作色（按钮、高亮、激活状态） |
+| `accent-hover` | `rgba(244,166,42,0.11)` | 激活背景叠加 |
+| `accent-text` | `#ffd27a` | 强调词汇文本、单词高亮 |
 | `accent-muted` | `#fbbf24` | 次级强调 |
-| `luna` | `linear-gradient(135deg, #4f46e5, #7c3aed)` | Luna AI 头像渐变 |
+| `luna` | `linear-gradient(135deg, #5367d8, #7656b8)` | Luna AI 头像渐变 |
 | `user-avatar` | `linear-gradient(135deg, #f59e0b, #ef4444)` | 用户头像渐变 |
 | `user-profile` | `linear-gradient(135deg, #6366f1, #8b5cf6)` | Sidebar 用户头像渐变 |
 | `success` | `#10b981` | 掌握状态、在线指示器 |
@@ -144,5 +144,12 @@ transition={{ duration: 0.18, ease: 'easeOut' }}
 
 - Sidebar 固定宽度：`220px`
 - 页面主内容区域左侧内边距：`px-10`（40px）
-- Practice 页右侧单词面板：`240px`
-- 移动端：暂不支持（纯桌面 Web 应用）
+- Practice 页右侧学习反馈面板：`260px`，`lg` 断点以下隐藏
+- 移动端使用底部导航，反馈信息通过消息卡片呈现
+
+## Product Direction
+
+- 主题：Luna 的夜间口语工作室
+- 优先级：开口练习 > 阅读回复 > 获取反馈 > 保存词汇
+- 使用层级、留白和单一主操作突出练习流程，减少装饰密度
+- 全局 token 定义在 `app/globals.css` 的 `:root` 中

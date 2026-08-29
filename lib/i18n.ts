@@ -66,6 +66,8 @@ export const zh = {
   send: '发送',
   switchToText: '切换文字输入',
   switchToVoice: '切换语音',
+  learningFeedback: '学习反馈',
+  learningFeedbackDesc: '本次练习里值得留下的内容',
 }
 
 export const en = {
@@ -132,6 +134,8 @@ export const en = {
   send: 'Send',
   switchToText: 'Switch to text',
   switchToVoice: 'Switch to voice',
+  learningFeedback: 'Learning feedback',
+  learningFeedbackDesc: 'Useful takeaways from this session',
 }
 
 export type Translations = typeof zh
