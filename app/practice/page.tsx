@@ -40,6 +40,7 @@ export default function PracticePage() {
   const [translating, setTranslating] = useState<string | null>(null)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const transcriptRef = useRef('')          // stale-closure fix
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -62,21 +63,6 @@ export default function PracticePage() {
     if (showTextInput) textInputRef.current?.focus()
   }, [showTextInput])
 
-  // iOS 要求 speechSynthesis 在用户手势内首次调用才能解锁
-  useEffect(() => {
-    const unlock = () => {
-      if (!window.speechSynthesis) return
-      const u = new SpeechSynthesisUtterance('')
-      u.volume = 0
-      window.speechSynthesis.speak(u)
-    }
-    document.addEventListener('touchstart', unlock, { once: true })
-    document.addEventListener('click', unlock, { once: true })
-    return () => {
-      document.removeEventListener('touchstart', unlock)
-      document.removeEventListener('click', unlock)
-    }
-  }, [])
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
@@ -218,31 +204,34 @@ export default function PracticePage() {
     }
   }, [messages, t.apiError])
 
-  const speakText = (text: string) => {
-    if (!window.speechSynthesis) return
-    window.speechSynthesis.cancel()
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.lang = 'en-US'
-    utter.rate = 0.92
-    utter.pitch = 1.05
-    utter.onstart = () => setIsSpeaking(true)
-    utter.onend = () => setIsSpeaking(false)
-    utter.onerror = () => setIsSpeaking(false)
-
-    const doSpeak = () => {
-      const voices = window.speechSynthesis.getVoices()
-      const enVoice = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'))
-      if (enVoice) utter.voice = enVoice
-      window.speechSynthesis.speak(utter)
+  const stopSpeakingAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.src = ''
+      audioRef.current = null
     }
+    setIsSpeaking(false)
+  }
 
-    if (window.speechSynthesis.getVoices().length > 0) {
-      doSpeak()
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null
-        doSpeak()
-      }
+  const speakText = async (text: string) => {
+    stopSpeakingAudio()
+    setIsSpeaking(true)
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok) { setIsSpeaking(false); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { URL.revokeObjectURL(url); setIsSpeaking(false) }
+      audio.onerror = () => { URL.revokeObjectURL(url); setIsSpeaking(false) }
+      audio.play()
+    } catch {
+      setIsSpeaking(false)
     }
   }
 
@@ -319,10 +308,7 @@ export default function PracticePage() {
     setPendingWords(prev => prev.filter(w => w.word !== word))
   }
 
-  const stopSpeaking = () => {
-    window.speechSynthesis?.cancel()
-    setIsSpeaking(false)
-  }
+  const stopSpeaking = stopSpeakingAudio
 
   const handleTranslate = async (msgId: string, text: string) => {
     if (translations[msgId] || translating) return
