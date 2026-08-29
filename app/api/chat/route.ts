@@ -26,10 +26,29 @@ Tag 1 advanced word (B2-C1) per response mid-sentence:
 Example: "AI is truly [WORD:ubiquitous:/juːˈbɪk.wɪ.təs/:adj:present or found everywhere:无处不在] today."
 - Only genuinely useful vocabulary. No colon inside the Chinese definition.`
 
+const ENGLISH_SYSTEM_PROMPT = `You are Luna, a friendly English conversation tutor for an English learner.
+
+## Strict Rules
+- Reply entirely in natural English. Never use Chinese.
+- NO emoji. Ever. Not a single one.
+- Keep replies to 2-3 sentences MAXIMUM. Be concise.
+- End with ONE short follow-up question.
+
+## 1. Grammar Correction (MANDATORY)
+After every user message, check for grammar errors.
+- If error found: add ONE tag at the very END of your response:
+  [CORRECTION:wrong phrase→corrected phrase:brief English explanation]
+- Only correct the most important error. If no errors, do NOT add any tag.
+
+## 2. Vocabulary Tagging (OPTIONAL)
+Tag 1 advanced word (B2-C1) per response mid-sentence:
+[WORD:word:/phonetic/:pos:English def under 8 words:short English meaning]
+- Only genuinely useful vocabulary. No colon inside the meaning.`
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { messages } = body
+    const { messages, language } = body
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 })
@@ -38,7 +57,7 @@ export async function POST(req: NextRequest) {
     const stream = await client.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: language === 'en' ? ENGLISH_SYSTEM_PROMPT : SYSTEM_PROMPT },
         ...messages,
       ],
       max_tokens: 250,

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type BrowserSpeechEvent = {
   resultIndex?: number
@@ -109,9 +110,13 @@ export default function PracticePage() {
         corrections: [],
         timestamp: Date.now(),
       }])
+    } else if (messages.length === 1 && messages[0].id === '0' && messages[0].content !== t.lunaOpening) {
+      setMessages(prev => prev.map(message => message.id === '0'
+        ? { ...message, content: t.lunaOpening, displayContent: t.lunaOpening }
+        : message
+      ))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [messages, setMessages, t.lunaOpening])
 
   const sendMessage = useCallback(async (userText: string) => {
     if (!userText.trim()) return
@@ -138,7 +143,7 @@ export default function PracticePage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, language: lang }),
       })
 
       if (!res.ok || !res.body) throw new Error('API error')
@@ -233,7 +238,7 @@ export default function PracticePage() {
     } finally {
       setIsStreaming(false)
     }
-  }, [messages, t.apiError])
+  }, [lang, messages, t.apiError])
 
   const sendMessageRef = useRef<typeof sendMessage>(sendMessage)
   sendMessageRef.current = sendMessage
@@ -443,16 +448,26 @@ export default function PracticePage() {
         </div>
 
         {/* Settings panel — TTS only (ASR model configured by admin in Profile) */}
-        {showSettings && (
-          <div className="flex-shrink-0 px-4 md:px-8 py-3 flex flex-col gap-2 border-b" style={{ background: 'var(--surface-3)', borderColor: 'var(--border)' }}>
-            <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--ink-dim)' }}>朗读声音</label>
-            <VoicePicker
-              options={sfModels.tts}
-              value={ttsVoice}
-              onChange={setTtsVoice}
-            />
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {showSettings && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="flex-shrink-0 overflow-hidden border-b"
+              style={{ background: 'var(--surface-3)', borderColor: 'var(--border)' }}>
+              <div className="px-4 md:px-8 py-3 flex flex-col gap-2">
+                <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--ink-dim)' }}>{t.voiceLabel}</label>
+                <VoicePicker
+                  options={sfModels.tts}
+                  value={ttsVoice}
+                  onChange={setTtsVoice}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 md:px-12 py-5 md:py-8 flex flex-col gap-5">
@@ -522,7 +537,7 @@ export default function PracticePage() {
                           style={{ background: '#1f2937', color: '#6b7280' }}>{word.pos}</span>
                       </div>
                       <p className="text-xs mt-0.5 leading-snug" style={{ color: '#9ca3af' }}>{word.definition}</p>
-                      {word.definitionZh && <p className="text-xs mt-0.5 leading-snug font-medium" style={{ color: '#6b7280' }}>{word.definitionZh}</p>}
+                      {lang === 'zh' && word.definitionZh && <p className="text-xs mt-0.5 leading-snug font-medium" style={{ color: '#6b7280' }}>{word.definitionZh}</p>}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button onClick={() => handleSaveWord(word)}
@@ -548,7 +563,7 @@ export default function PracticePage() {
                       onClick={() => handleTranslate(msg.id, msg.content.replace(/\[WORD:[^\]]+\]/g, '').replace(/\[CORRECTION:[^\]]+\]/g, '').trim())}
                       className="text-[11px] font-medium transition-opacity hover:opacity-70"
                       style={{ color: translating === msg.id ? '#6b7280' : translations[msg.id] ? '#4b5563' : '#f59e0b' }}>
-                      {translating === msg.id ? '翻译中…' : translations[msg.id] ? '已翻译' : '显示翻译'}
+                      {translating === msg.id ? t.translating : translations[msg.id] ? t.translated : t.showTranslation}
                     </button>
                   )}
                 </div>
@@ -663,7 +678,7 @@ export default function PracticePage() {
                 ) : isTranscribing ? (
                   <>
                     <CircleNotch size={18} weight="bold" color="#6366f1" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
-                    <span className="flex-1 text-sm" style={{ color: '#a5b4fc' }}>识别中…</span>
+                    <span className="flex-1 text-sm" style={{ color: '#a5b4fc' }}>{t.transcribing}</span>
                   </>
                 ) : isSpeaking ? (
                   <>
@@ -675,7 +690,7 @@ export default function PracticePage() {
                     <span className="flex-1 text-sm" style={{ color: '#9ca3af' }}>{t.lunaSpeaking}</span>
                     <button onClick={stopSpeaking} className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-70"
                       style={{ color: '#6b7280', background: '#1f2937' }}>
-                      停止
+                      {t.stop}
                     </button>
                   </>
                 ) : (
@@ -751,11 +766,11 @@ export default function PracticePage() {
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl p-3" style={{ background: 'var(--surface-1)' }}>
-              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>时间</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>{t.time}</div>
               <div className="text-lg font-extrabold" style={{ color: 'var(--ink)' }}>{formatTime(sessionTime)}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: 'var(--surface-1)' }}>
-              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>新词</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--ink-dim)' }}>{t.newWords}</div>
               <div className="text-lg font-extrabold" style={{ color: 'var(--accent)' }}>{pendingWords.length}</div>
             </div>
           </div>

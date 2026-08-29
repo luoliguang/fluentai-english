@@ -8,6 +8,9 @@ import BottomNav from '@/components/BottomNav'
 export const metadata: Metadata = {
   title: 'FluentAI - 英语口语练习',
   description: 'AI 驱动的英语口语与词汇学习平台',
+  icons: {
+    icon: '/icon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

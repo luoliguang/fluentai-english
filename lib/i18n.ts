@@ -68,6 +68,14 @@ export const zh = {
   switchToVoice: '切换语音',
   learningFeedback: '学习反馈',
   learningFeedbackDesc: '本次练习里值得留下的内容',
+  voiceLabel: '朗读声音',
+  transcribing: '识别中…',
+  stop: '停止',
+  translating: '翻译中…',
+  translated: '已翻译',
+  showTranslation: '显示翻译',
+  time: '时间',
+  newWords: '新词',
 }
 
 export const en = {
@@ -136,6 +144,14 @@ export const en = {
   switchToVoice: 'Switch to voice',
   learningFeedback: 'Learning feedback',
   learningFeedbackDesc: 'Useful takeaways from this session',
+  voiceLabel: 'Reading voice',
+  transcribing: 'Transcribing…',
+  stop: 'Stop',
+  translating: 'Translating…',
+  translated: 'Translated',
+  showTranslation: 'Show translation',
+  time: 'Time',
+  newWords: 'New words',
 }
 
 export type Translations = typeof zh
