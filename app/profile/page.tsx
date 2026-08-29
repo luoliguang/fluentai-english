@@ -1,11 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Sidebar from '@/components/Sidebar'
-import { UserCircle, Lock, SignOut, FloppyDisk } from '@phosphor-icons/react'
+import { UserCircle, Lock, SignOut, FloppyDisk, Robot } from '@phosphor-icons/react'
+import { usePracticeStore } from '@/lib/usePracticeStore'
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
+  const { asrModel, setAsrModel } = usePracticeStore()
   const [name, setName] = useState(session?.user?.name || '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -13,6 +15,15 @@ export default function ProfilePage() {
   const [pwMsg, setPwMsg] = useState('')
   const [nameSaving, setNameSaving] = useState(false)
   const [pwSaving, setPwSaving] = useState(false)
+  const [sfModels, setSfModels] = useState<{ asr: {id:string,label:string}[], tts: {id:string,label:string}[] }>({ asr: [], tts: [] })
+
+  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetch('/api/sf-models').then(r => r.json()).then(setSfModels).catch(() => {})
+    }
+  }, [isAdmin])
 
   const handleSaveName = async () => {
     if (!name.trim()) return
@@ -135,6 +146,28 @@ export default function ProfilePage() {
               {pwSaving ? '更新中…' : '更新密码'}
             </button>
           </div>
+
+          {/* 管理员：ASR 模型配置 */}
+          {isAdmin && sfModels.asr.length > 0 && (
+            <div className="rounded-2xl border p-5" style={{ background: '#111827', borderColor: '#1f2937' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Robot size={16} weight="regular" color="#9ca3af" />
+                <span className="text-sm font-bold" style={{ color: '#f9fafb' }}>语音识别模型</span>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1"
+                  style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>管理员</span>
+              </div>
+              <select
+                value={asrModel}
+                onChange={e => setAsrModel(e.target.value)}
+                className="w-full rounded-xl px-4 py-3 text-sm border outline-none"
+                style={{ background: '#0a0f1e', borderColor: '#1f2937', color: '#f9fafb' }}>
+                {sfModels.asr.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+              </select>
+              <p className="text-xs mt-2" style={{ color: '#4b5563' }}>
+                仅管理员可配置，影响所有用户的语音识别结果。
+              </p>
+            </div>
+          )}
 
           {/* 退出登录 */}
           <button

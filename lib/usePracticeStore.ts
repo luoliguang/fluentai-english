@@ -12,6 +12,7 @@ interface PracticeStore {
   sessionTime: number
   translations: Record<string, string>
   ttsVoice: string
+  asrModel: string
 
   setMessages: (fn: Updater<Message[]>) => void
   setSessionWords: (fn: Updater<Word[]>) => void
@@ -19,6 +20,7 @@ interface PracticeStore {
   setSessionTime: (fn: Updater<number>) => void
   setTranslations: (fn: Updater<Record<string, string>>) => void
   setTtsVoice: (voice: string) => void
+  setAsrModel: (model: string) => void
 }
 
 export const usePracticeStore = create<PracticeStore>((set) => ({
@@ -28,6 +30,7 @@ export const usePracticeStore = create<PracticeStore>((set) => ({
   sessionTime: 0,
   translations: {},
   ttsVoice: 'FunAudioLLM/CosyVoice2-0.5B:anna',
+  asrModel: 'FunAudioLLM/SenseVoiceSmall',
 
   setMessages: (fn) => set((s) => ({ messages: apply(s.messages, fn) })),
   setSessionWords: (fn) => set((s) => ({ sessionWords: apply(s.sessionWords, fn) })),
@@ -35,4 +38,5 @@ export const usePracticeStore = create<PracticeStore>((set) => ({
   setSessionTime: (fn) => set((s) => ({ sessionTime: apply(s.sessionTime, fn) })),
   setTranslations: (fn) => set((s) => ({ translations: apply(s.translations, fn) })),
   setTtsVoice: (voice) => set({ ttsVoice: voice }),
+  setAsrModel: (model) => set({ asrModel: model }),
 }))

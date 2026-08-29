@@ -1,11 +1,5 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate } from '@phosphor-icons/react'
-import Sidebar from '@/components/Sidebar'
-import { Message, Word } from '@/lib/types'
-import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
-import { useI18n } from '@/lib/i18nContext'
-import { usePracticeStore } from '@/lib/usePracticeStore'
 
 declare global {
   interface Window {
@@ -13,6 +7,13 @@ declare global {
     webkitSpeechRecognition: typeof SpeechRecognition
   }
 }
+import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate, GearSix, CircleNotch } from '@phosphor-icons/react'
+import Sidebar from '@/components/Sidebar'
+import { Message, Word } from '@/lib/types'
+import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
+import { useI18n } from '@/lib/i18nContext'
+import { usePracticeStore } from '@/lib/usePracticeStore'
+
 
 const TOPICS = [
   { icon: <AirplaneTakeoff size={18} weight="regular" color="#a5b4fc" />, zh: '旅游', en: "Let's talk about travel! I'd love to practice describing places I want to visit." },
@@ -30,8 +31,10 @@ export default function PracticePage() {
     sessionTime, setSessionTime,
     translations, setTranslations,
     ttsVoice, setTtsVoice,
+    asrModel, setAsrModel,
   } = usePracticeStore()
   const [isRecording, setIsRecording] = useState(false)
+  const [isTranscribing, setIsTranscribing] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -39,10 +42,14 @@ export default function PracticePage() {
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInput, setTextInput] = useState('')
   const [translating, setTranslating] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [sfModels, setSfModels] = useState<{ asr: {id:string,label:string}[], tts: {id:string,label:string}[] }>({ asr: [], tts: [] })
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const streamRef = useRef<MediaStream | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const transcriptRef = useRef('')          // stale-closure fix
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const textInputRef = useRef<HTMLInputElement>(null)
@@ -57,8 +64,8 @@ export default function PracticePage() {
   }, [setSessionTime])
 
   useEffect(() => {
-    transcriptRef.current = transcript
-  }, [transcript])
+    fetch('/api/sf-models').then(r => r.json()).then(setSfModels).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (showTextInput) textInputRef.current?.focus()
@@ -205,6 +212,9 @@ export default function PracticePage() {
     }
   }, [messages, t.apiError])
 
+  const sendMessageRef = useRef<typeof sendMessage>(sendMessage)
+  sendMessageRef.current = sendMessage
+
   const stopSpeakingAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause()
@@ -237,56 +247,72 @@ export default function PracticePage() {
     }
   }
 
-  const startRecording = useCallback(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
+  const startRecording = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
       setShowTextInput(true)
       return
     }
+    stopSpeakingAudio()
 
-    const recognition = new SR()
-    recognition.lang = 'en-US'
-    recognition.continuous = true
-    recognition.interimResults = true
-
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
-      const text = Array.from(e.results).map(r => r[0].transcript).join('')
-      setTranscript(text)
-      transcriptRef.current = text
-    }
-
-    recognition.onend = () => {
-      setIsRecording(false)
-      const text = transcriptRef.current
-      if (text.trim()) {
-        sendMessage(text)
+    // SpeechRecognition for real-time interim display only
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (SR) {
+      const rec = new SR()
+      rec.lang = 'en-US'
+      rec.continuous = true
+      rec.interimResults = true
+      rec.onresult = (e: SpeechRecognitionEvent) => {
+        const text = Array.from(e.results).map(r => r[0].transcript).join('')
+        setTranscript(text)
       }
-      setTranscript('')
-      transcriptRef.current = ''
+      rec.onerror = () => {}
+      recognitionRef.current = rec
+      rec.start()
     }
 
-    recognition.onerror = () => {
-      setIsRecording(false)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      const mr = new MediaRecorder(stream)
+      audioChunksRef.current = []
+      mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data) }
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop())
+        streamRef.current = null
+        const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' })
+        setIsRecording(false)
+        setIsTranscribing(true)
+        setTranscript('')
+        try {
+          const fd = new FormData()
+          fd.append('file', blob, 'recording.webm')
+          fd.append('model', asrModel)
+          const res = await fetch('/api/asr', { method: 'POST', body: fd })
+          const data = await res.json()
+          const text = (data.text ?? '').trim()
+          if (text) await sendMessageRef.current?.(text)
+        } catch (e) {
+          console.error('ASR error', e)
+        } finally {
+          setIsTranscribing(false)
+          setTranscript('')
+        }
+      }
+      mr.start()
+      mediaRecorderRef.current = mr
+      setIsRecording(true)
       setTranscript('')
-      transcriptRef.current = ''
+    } catch {
+      recognitionRef.current?.stop()
+      recognitionRef.current = null
+      setShowTextInput(true)
     }
-
-    recognition.onnomatch = () => {
-      setIsRecording(false)
-      setTranscript('')
-      transcriptRef.current = ''
-    }
-
-    recognitionRef.current = recognition
-    recognition.start()
-    setIsRecording(true)
-    setTranscript('')
-    transcriptRef.current = ''
-    window.speechSynthesis?.cancel()
-  }, [sendMessage])
+  }, [asrModel])
 
   const stopRecording = useCallback(() => {
     recognitionRef.current?.stop()
+    recognitionRef.current = null
+    mediaRecorderRef.current?.stop()
   }, [])
 
   const handleSendText = () => {
@@ -328,7 +354,7 @@ export default function PracticePage() {
     }
   }
 
-  const isBusy = isThinking || isStreaming
+  const isBusy = isThinking || isStreaming || isTranscribing
   const isOpening = messages.length <= 1
 
   return (
@@ -353,20 +379,6 @@ export default function PracticePage() {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            {/* 声音选择器 */}
-            <select
-              value={ttsVoice}
-              onChange={e => setTtsVoice(e.target.value)}
-              className="text-xs rounded-lg px-2 py-1.5 border outline-none cursor-pointer"
-              style={{ background: '#111827', borderColor: '#1f2937', color: '#9ca3af' }}
-              title="选择 AI 声音"
-            >
-              <option value="FunAudioLLM/CosyVoice2-0.5B:anna">Anna</option>
-              <option value="FunAudioLLM/CosyVoice2-0.5B:bella">Bella</option>
-              <option value="FunAudioLLM/CosyVoice2-0.5B:claire">Claire</option>
-              <option value="FunAudioLLM/CosyVoice2-0.5B:david">David</option>
-              <option value="FunAudioLLM/CosyVoice2-0.5B:ethan">Ethan</option>
-            </select>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border"
               style={{ background: '#111827', borderColor: '#1f2937', color: '#9ca3af' }}>
               <Clock size={14} weight="regular" color="#6b7280" />
@@ -378,8 +390,29 @@ export default function PracticePage() {
                 {t.wordsSaved(sessionWords.length)}
               </div>
             )}
+            <button
+              onClick={() => setShowSettings(v => !v)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
+              style={{
+                background: showSettings ? 'rgba(245,158,11,0.1)' : '#111827',
+                borderColor: showSettings ? 'rgba(245,158,11,0.3)' : '#1f2937',
+              }}>
+              <GearSix size={16} weight={showSettings ? 'fill' : 'regular'} color={showSettings ? '#f59e0b' : '#6b7280'} />
+            </button>
           </div>
         </div>
+
+        {/* Settings panel — TTS only (ASR model configured by admin in Profile) */}
+        {showSettings && (
+          <div className="flex-shrink-0 px-4 md:px-7 py-3 flex flex-col gap-2 border-b" style={{ background: '#080d1a', borderColor: '#1a2540' }}>
+            <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#4b5563' }}>朗读声音</label>
+            <select value={ttsVoice} onChange={e => setTtsVoice(e.target.value)}
+              className="text-xs rounded-lg px-3 py-2 border outline-none max-w-xs"
+              style={{ background: '#111827', borderColor: '#1f2937', color: '#d1d5db' }}>
+              {sfModels.tts.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 md:px-7 py-4 md:py-6 flex flex-col gap-5">
@@ -578,14 +611,17 @@ export default function PracticePage() {
                       ))}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm italic" style={{ color: transcript ? '#d1d5db' : '#6b7280' }}>
-                        {transcript || t.listening}
-                      </div>
+                      <div className="text-sm font-medium" style={{ color: '#f59e0b' }}>{t.listening}</div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ef4444' }} />
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ef4444', animation: 'pulse 1s infinite' }} />
                         <span className="text-[11px] font-semibold" style={{ color: '#f59e0b' }}>{t.recording}</span>
                       </div>
                     </div>
+                  </>
+                ) : isTranscribing ? (
+                  <>
+                    <CircleNotch size={18} weight="bold" color="#6366f1" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+                    <span className="flex-1 text-sm" style={{ color: '#a5b4fc' }}>识别中…</span>
                   </>
                 ) : isSpeaking ? (
                   <>
