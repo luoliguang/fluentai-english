@@ -29,6 +29,7 @@ declare global {
 }
 import { Clock, ArrowRight, Keyboard, Microphone, Stop, X, BookmarkSimple, WarningCircle, AirplaneTakeoff, Desktop, ForkKnife, FilmSlate, GearSix, CircleNotch, ChatCircleDots } from '@phosphor-icons/react'
 import Sidebar from '@/components/Sidebar'
+import VoicePicker from '@/components/VoicePicker'
 import { Message, Word } from '@/lib/types'
 import { parseWords, parseCorrections, renderContent, createWord } from '@/lib/wordBank'
 import { useI18n } from '@/lib/i18nContext'
@@ -443,13 +444,13 @@ export default function PracticePage() {
 
         {/* Settings panel — TTS only (ASR model configured by admin in Profile) */}
         {showSettings && (
-          <div className="flex-shrink-0 px-4 md:px-7 py-3 flex flex-col gap-2 border-b" style={{ background: '#080d1a', borderColor: '#1a2540' }}>
-            <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#4b5563' }}>朗读声音</label>
-            <select value={ttsVoice} onChange={e => setTtsVoice(e.target.value)}
-              className="text-xs rounded-lg px-3 py-2 border outline-none max-w-xs"
-              style={{ background: '#111827', borderColor: '#1f2937', color: '#d1d5db' }}>
-              {sfModels.tts.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
-            </select>
+          <div className="flex-shrink-0 px-4 md:px-8 py-3 flex flex-col gap-2 border-b" style={{ background: 'var(--surface-3)', borderColor: 'var(--border)' }}>
+            <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--ink-dim)' }}>朗读声音</label>
+            <VoicePicker
+              options={sfModels.tts}
+              value={ttsVoice}
+              onChange={setTtsVoice}
+            />
           </div>
         )}
 
